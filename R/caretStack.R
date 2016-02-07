@@ -12,14 +12,14 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:50,1:2],
 #'   y=iris[1:50,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' caretStack(models, method='glm')
+#' caretStack(models, method="glm")
 #' }
 caretStack <- function(all.models, ...){
 
@@ -30,7 +30,7 @@ caretStack <- function(all.models, ...){
 
   #Return final model
   out <- list(models=all.models, ens_model=model, error=model$results)
-  class(out) <- 'caretStack'
+  class(out) <- "caretStack"
   return(out)
 }
 
@@ -40,27 +40,90 @@ caretStack <- function(all.models, ...){
 #' weights to get a single, combined vector of predictions.
 #' @param object a  \code{\link{caretStack}} to make predictions from.
 #' @param newdata a new dataframe to make predictions on
+#' @param se logical, should prediction errors be produced? Default is false.
+#' @param level tolerance/confidence level
+#' @param return_weights a logical indicating whether prediction weights for each model
+#' should be returned
 #' @param ... arguments to pass to \code{\link{predict.train}}.
 #' @export
+#' @details Prediction weights are defined as variable importance in the stacked
+#' caret model. This is not available for all cases such as where the library
+#' model predictions are transformed before being passed to the stacking model.
 #' @method predict caretStack
 #' @examples
 #' \dontrun{
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:100,1:2],
 #'   y=iris[1:100,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' meta_model <- caretStack(models, method='lm')
+#' meta_model <- caretStack(models, method="lm")
 #' RMSE(predict(meta_model, iris[101:150,1:2]), iris[101:150,3])
 #' }
-predict.caretStack <- function(object, newdata=NULL, ...){
-  stopifnot(is(object$models, 'caretList'))
+predict.caretStack <- function(
+  object, newdata=NULL,
+  se=FALSE, level=0.95,
+  return_weights=FALSE,
+  ...){
+  stopifnot(is(object$models, "caretList"))
   type <- extractModelTypes(object$models)
   preds <- predict(object$models, newdata=newdata)
-  out <- predict(object$ens_model, newdata=preds, ...)
+  if(type == "Classification"){
+    out <- predict(object$ens_model, newdata=preds, ...)
+    # Need a check here
+    if(class(out) %in% c("data.frame", "matrix")){
+      est <- out[, 2, drop = TRUE] # return only the probabilities for the second class
+    } else{
+      est <- out
+    }
+  } else{
+    est <- predict(object$ens_model, newdata=preds, ...)
+  }
+
+  if(se | return_weights){
+    imp <- varImp(object$ens_model)$importance
+    weights <- imp$Overall
+    weights[!is.finite(weights)] <- 0
+    weights <- weights / sum(weights)
+
+    names(weights) <- row.names(imp)
+    methods <- colnames(preds)
+
+    for(m in setdiff(methods, names(weights))){
+      weights[m] <- 0
+    }
+  }
+
+  out <- est
+  if(se){
+    if(!is.numeric(est)){
+      message("Standard errors not available.")
+      out <- est
+    } else{
+      weights <- weights[methods]
+      std_error <- apply(preds, 1, wtd.sd, w = weights)
+      std_error <- (qnorm(level) * std_error)
+      out <- data.frame(
+        fit = est,
+        lwr = est - std_error,
+        upr = est + std_error
+      )
+    }
+  }
+  if(return_weights) {
+    attr(out, "weights") <- weights
+  }
   return(out)
+}
+
+#' @title Check if an object is a caretStack object
+#' @param object an R object
+#' @description Check if an object is a caretStack object
+#' @export
+is.caretStack <- function(object){
+  is(object, "caretStack")
 }
 
 #' @title Summarize a caretStack object
@@ -70,14 +133,14 @@ predict.caretStack <- function(object, newdata=NULL, ...){
 #' @export
 #' @examples
 #' \dontrun{
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:100,1:2],
 #'   y=iris[1:100,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' meta_model <- caretStack(models, method='lm')
+#' meta_model <- caretStack(models, method="lm")
 #' summary(meta_model)
 #' }
 summary.caretStack <- function(object, ...){
@@ -91,24 +154,24 @@ summary.caretStack <- function(object, ...){
 #' @export
 #' @examples
 #' \dontrun{
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:100,1:2],
 #'   y=iris[1:100,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' meta_model <- caretStack(models, method='lm')
+#' meta_model <- caretStack(models, method="lm")
 #' print(meta_model)
 #' }
 print.caretStack <- function(x, ...){
   n <- length(x$models)
   cat(paste(
-    'A',
+    "A",
     x$ens_model$method,
-    'ensemble of 2 base models:',
-    paste(sapply(x$models, function(x) x$method), collapse=', ')))
-  cat('\n\nEnsemble results:\n')
+    "ensemble of 2 base models:",
+    paste(sapply(x$models, function(x) x$method), collapse=", ")))
+  cat("\n\nEnsemble results:\n")
   print(x$ens_model)
 }
 
@@ -120,14 +183,14 @@ print.caretStack <- function(x, ...){
 #' @method plot caretStack
 #' @examples
 #' \dontrun{
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:100,1:2],
 #'   y=iris[1:100,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' meta_model <- caretStack(models, method='rpart', tuneLength=2)
+#' meta_model <- caretStack(models, method="rpart", tuneLength=2)
 #' plot(meta_model)
 #' }
 plot.caretStack <- function(x, ...){
@@ -135,27 +198,25 @@ plot.caretStack <- function(x, ...){
 }
 
 #' @title Comparison dotplot for a caretStack object
-#' @description This is a function to make a dotplot from a caretStack.  It uses dotplot from the caret package on all the models in the ensemble, plus the final ensemble model.  At the moment, this function only works if the ensembling model has the same number of resamples as the component models.
+#' @description This is a function to make a dotplot from a caretStack.  It uses dotplot from the caret package on all the models in the ensemble, excluding the final ensemble model.  At the moment, this function only works if the ensembling model has the same number of resamples as the component models.
 #' @param x An object of class caretStack
 #' @param data passed to dotplot
 #' @param ... passed to dotplot
 #' @importFrom lattice dotplot
+#' @importFrom caret resamples
 #' @examples
 #' \dontrun{
 #' set.seed(42)
-#' library('rpart')
+#' library("rpart")
 #' models <- caretList(
 #'   x=iris[1:100,1:2],
 #'   y=iris[1:100,3],
-#'   trControl=trainControl(method='cv'),
-#'   methodList=c('rpart', 'glm')
+#'   trControl=trainControl(method="cv"),
+#'   methodList=c("rpart", "glm")
 #' )
-#' meta_model <- caretStack(models, method='lm', trControl=trainControl(method='cv'))
+#' meta_model <- caretStack(models, method="lm", trControl=trainControl(method="cv"))
 #' dotplot.caretStack(meta_model)
 #' }
 dotplot.caretStack <- function(x, data=NULL, ...){
-  final <- list(x$ens_model)
-  names(final) <- paste(paste(x$ens_model$method, collapse='_'), 'ENSEMBLE', sep='_')
-  base <- x$models
-  dotplot(resamples(c(final, base)), data=data, ...)
+  dotplot(resamples(x$models), data=data, ...)
 }
