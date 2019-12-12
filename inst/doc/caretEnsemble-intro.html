@@ -4,46 +4,296 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <meta name="author" content="Zach Mayer" />
 
-<meta name="date" content="2016-01-31" />
+<meta name="date" content="2019-12-12" />
 
 <title>A Brief Introduction to caretEnsemble</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
-</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
   }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
-<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20700px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%201%2E35%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%2010px%3B%0A%20%20padding%3A%204px%3B%0A%20%20width%3A%20400px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%200%2E25em%200%2E75em%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%7D%0Apre%20%7B%0A%20%20white%2Dspace%3A%20pre%2Dwrap%3B%20%20%20%20%2F%2A%20Wrap%20long%20lines%20%2A%2F%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%20%20font%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%200px%3B%0A%7D%0A%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+
 
 </head>
 
@@ -51,11 +301,11 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 
 
-<div id="header">
-<h1 class="title">A Brief Introduction to caretEnsemble</h1>
-<h4 class="author"><em>Zach Mayer</em></h4>
-<h4 class="date"><em>2016-01-31</em></h4>
-</div>
+
+<h1 class="title toc-ignore">A Brief Introduction to caretEnsemble</h1>
+<h4 class="author">Zach Mayer</h4>
+<h4 class="date">2019-12-12</h4>
+
 
 
 <p><code>caretEnsemble</code> is a package for making ensembles of caret models. You should already be somewhat familiar with the caret package before trying out <code>caretEnsemble</code>.</p>
@@ -64,35 +314,40 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <h2>caretList</h2>
 <p><code>caretList</code> is a flexible function for fitting many different caret models, with the same resampling parameters, to the same dataset. It returns a convenient <code>list</code> of caret objects which can later be passed to <code>caretEnsemble</code> and <code>caretStack</code>. <code>caretList</code> has almost exactly the same arguments as <code>train</code> (from the caret package), with the exception that the <code>trControl</code> argument comes last. It can handle both the formula interface and the explicit <code>x</code>, <code>y</code> interface to train. As in caret, the formula interface introduces some overhead and the <code>x</code>, <code>y</code> interface is preferred.</p>
 <p><code>caretEnsemble</code> has 2 arguments that can be used to specify which models to fit: <code>methodList</code> and <code>tuneList</code>. <code>methodList</code> is a simple character vector of methods that will be fit with the default <code>train</code> parameters, while <code>tuneList</code> can be used to customize the call to each component model and will be discussed in more detail later. First, lets build an example dataset (adapted from the caret vignette):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Adapted from the caret vignette</span>
-<span class="kw">library</span>(<span class="st">&quot;caret&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;mlbench&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;pROC&quot;</span>)
-<span class="kw">data</span>(Sonar)
-<span class="kw">set.seed</span>(<span class="dv">107</span>)
-inTrain &lt;-<span class="st"> </span><span class="kw">createDataPartition</span>(<span class="dt">y =</span> Sonar$Class, <span class="dt">p =</span> .<span class="dv">75</span>, <span class="dt">list =</span> <span class="ot">FALSE</span>)
-training &lt;-<span class="st"> </span>Sonar[ inTrain,]
-testing &lt;-<span class="st"> </span>Sonar[-inTrain,]
-my_control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(
-  <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,
-  <span class="dt">number=</span><span class="dv">25</span>,
-  <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,
-  <span class="dt">classProbs=</span><span class="ot">TRUE</span>,
-  <span class="dt">index=</span><span class="kw">createResample</span>(training$Class, <span class="dv">25</span>),
-  <span class="dt">summaryFunction=</span>twoClassSummary
-  )</code></pre>
-<p>Notice that we are explicitly setting the resampling <code>index</code> to being used in <code>trainControl</code>. If you do not set this index manually, <code>caretList</code> will attempt to set it for automatically, but it“s generally a good idea to set it yourself.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co">#Adapted from the caret vignette</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(<span class="st">&quot;caret&quot;</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(<span class="st">&quot;mlbench&quot;</span>)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">library</span>(<span class="st">&quot;pROC&quot;</span>)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw">data</span>(Sonar)</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">set.seed</span>(<span class="dv">107</span>)</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">inTrain &lt;-<span class="st"> </span><span class="kw">createDataPartition</span>(<span class="dt">y =</span> Sonar<span class="op">$</span>Class, <span class="dt">p =</span> <span class="fl">.75</span>, <span class="dt">list =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">training &lt;-<span class="st"> </span>Sonar[ inTrain,]</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">testing &lt;-<span class="st"> </span>Sonar[<span class="op">-</span>inTrain,]</a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">my_control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11">  <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">  <span class="dt">number=</span><span class="dv">25</span>,</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13">  <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,</a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">  <span class="dt">classProbs=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb1-15" data-line-number="15">  <span class="dt">index=</span><span class="kw">createResample</span>(training<span class="op">$</span>Class, <span class="dv">25</span>),</a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">  <span class="dt">summaryFunction=</span>twoClassSummary</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17">  )</a></code></pre></div>
+<p>Notice that we are explicitly setting the resampling <code>index</code> to being used in <code>trainControl</code>. If you do not set this index manually, <code>caretList</code> will attempt to set it for automatically, but it&quot;s generally a good idea to set it yourself.</p>
 <p>Now we can use <code>caretList</code> to fit a series of models (each with the same <code>trControl</code>):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;rpart&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;caretEnsemble&quot;</span>)
-model_list &lt;-<span class="st"> </span><span class="kw">caretList</span>(
-  Class~., <span class="dt">data=</span>training,
-  <span class="dt">trControl=</span>my_control,
-  <span class="dt">methodList=</span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;rpart&quot;</span>)
-  )</code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;rpart&quot;</span>)</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">library</span>(<span class="st">&quot;caretEnsemble&quot;</span>)</a></code></pre></div>
+<pre><code>## 
+## Attaching package: 'caretEnsemble'</code></pre>
+<pre><code>## The following object is masked from 'package:ggplot2':
+## 
+##     autoplot</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">model_list &lt;-<span class="st"> </span><span class="kw">caretList</span>(</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">  Class<span class="op">~</span>., <span class="dt">data=</span>training,</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="dt">trControl=</span>my_control,</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">methodList=</span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;rpart&quot;</span>)</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">  )</a></code></pre></div>
 <p>(As with <code>train</code>, the formula interface is convienent but introduces move overhead. For large datasets the explicitly passing <code>x</code> and <code>y</code> is preferred). We can use the <code>predict</code> function to extract predicitons from this object for new data:</p>
-<pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">predict</span>(model_list, <span class="dt">newdata=</span><span class="kw">head</span>(testing)))
-<span class="kw">print</span>(p)</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">p &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">predict</span>(model_list, <span class="dt">newdata=</span><span class="kw">head</span>(testing)))</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="kw">print</span>(p)</a></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -102,94 +357,94 @@ model_list &lt;-<span class="st"> </span><span class="kw">caretList</span>(
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.0000000</td>
-<td align="right">0.7794118</td>
+<td align="right">0.00e+00</td>
+<td align="right">0.8750000</td>
 </tr>
 <tr class="even">
-<td align="right">0.0000000</td>
-<td align="right">0.0882353</td>
+<td align="right">1.00e+00</td>
+<td align="right">0.8750000</td>
 </tr>
 <tr class="odd">
-<td align="right">0.0000000</td>
-<td align="right">0.0882353</td>
+<td align="right">1.00e+00</td>
+<td align="right">0.1818182</td>
 </tr>
 <tr class="even">
-<td align="right">0.0000675</td>
-<td align="right">0.0882353</td>
+<td align="right">2.35e-05</td>
+<td align="right">0.1818182</td>
 </tr>
 <tr class="odd">
-<td align="right">0.0000000</td>
-<td align="right">0.6666667</td>
+<td align="right">0.00e+00</td>
+<td align="right">0.1818182</td>
 </tr>
 <tr class="even">
-<td align="right">0.7654240</td>
-<td align="right">0.7794118</td>
+<td align="right">1.00e+00</td>
+<td align="right">0.1818182</td>
 </tr>
 </tbody>
 </table>
 <p>If you desire more control over the model fit, use the <code>caretModelSpec</code> to contruct a list of model specifications for the <code>tuneList</code> argument. This argumenent can be used to fit several different variants of the same model, and can also be used to pass arguments through <code>train</code> down to the component functions (e.g. <code>trace=FALSE</code> for <code>nnet</code>):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;mlbench&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;randomForest&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;nnet&quot;</span>)
-model_list_big &lt;-<span class="st"> </span><span class="kw">caretList</span>(
-  Class~., <span class="dt">data=</span>training,
-  <span class="dt">trControl=</span>my_control,
-  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,
-  <span class="dt">methodList=</span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;rpart&quot;</span>),
-  <span class="dt">tuneList=</span><span class="kw">list</span>(
-    <span class="dt">rf1=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>, <span class="dt">tuneGrid=</span><span class="kw">data.frame</span>(<span class="dt">.mtry=</span><span class="dv">2</span>)),
-    <span class="dt">rf2=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>, <span class="dt">tuneGrid=</span><span class="kw">data.frame</span>(<span class="dt">.mtry=</span><span class="dv">10</span>), <span class="dt">preProcess=</span><span class="st">&quot;pca&quot;</span>),
-    <span class="dt">nn=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;nnet&quot;</span>, <span class="dt">tuneLength=</span><span class="dv">2</span>, <span class="dt">trace=</span><span class="ot">FALSE</span>)
-  )
-)</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;mlbench&quot;</span>)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw">library</span>(<span class="st">&quot;randomForest&quot;</span>)</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="kw">library</span>(<span class="st">&quot;nnet&quot;</span>)</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">model_list_big &lt;-<span class="st"> </span><span class="kw">caretList</span>(</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">  Class<span class="op">~</span>., <span class="dt">data=</span>training,</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">  <span class="dt">trControl=</span>my_control,</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">  <span class="dt">methodList=</span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;rpart&quot;</span>),</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">  <span class="dt">tuneList=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb7-10" data-line-number="10">    <span class="dt">rf1=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>, <span class="dt">tuneGrid=</span><span class="kw">data.frame</span>(<span class="dt">.mtry=</span><span class="dv">2</span>)),</a>
+<a class="sourceLine" id="cb7-11" data-line-number="11">    <span class="dt">rf2=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;rf&quot;</span>, <span class="dt">tuneGrid=</span><span class="kw">data.frame</span>(<span class="dt">.mtry=</span><span class="dv">10</span>), <span class="dt">preProcess=</span><span class="st">&quot;pca&quot;</span>),</a>
+<a class="sourceLine" id="cb7-12" data-line-number="12">    <span class="dt">nn=</span><span class="kw">caretModelSpec</span>(<span class="dt">method=</span><span class="st">&quot;nnet&quot;</span>, <span class="dt">tuneLength=</span><span class="dv">2</span>, <span class="dt">trace=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb7-13" data-line-number="13">  )</a>
+<a class="sourceLine" id="cb7-14" data-line-number="14">)</a></code></pre></div>
 <p>Finally, you should note that <code>caretList</code> does not support custom caret models. Fitting those models are beyond the scope of this vignette, but if you do so, you can manually add them to the model list (e.g. <code>model_list_big[[&quot;my_custom_model&quot;]] &lt;- my_custom_model</code>). Just be sure to use the same re-sampling indexes in <code>trControl</code> as you use in the <code>caretList</code> models!</p>
 </div>
 <div id="caretensemble" class="section level2">
 <h2>caretEnsemble</h2>
 <p><code>caretList</code> is the preferred way to construct list of caret models in this package, as it will ensure the resampling indexes are identical across all models. Lets take a closer look at our list of models:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">xyplot</span>(<span class="kw">resamples</span>(model_list))</code></pre>
-<p><img src="data:image/png;base64,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" /></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">xyplot</span>(<span class="kw">resamples</span>(model_list))</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>As you can see from this plot, these 2 models are un-correlated, and the rpart model is ocassionally anti-predictive, with a few re-samples showing AUCS around 0.3 to 0.4.</p>
-<p>We can confirm the 2 model“s correlation with the <code>modelCor</code> function from caret (caret has a lot of convienent functions for analyzing lists of models):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">modelCor</span>(<span class="kw">resamples</span>(model_list))</code></pre>
-<pre><code>##             glm     rpart
-## glm   1.0000000 0.1426353
-## rpart 0.1426353 1.0000000</code></pre>
+<p>We can confirm the 2 model&quot;s correlation with the <code>modelCor</code> function from caret (caret has a lot of convienent functions for analyzing lists of models):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">modelCor</span>(<span class="kw">resamples</span>(model_list))</a></code></pre></div>
+<pre><code>##               glm       rpart
+## glm    1.00000000 -0.01658742
+## rpart -0.01658742  1.00000000</code></pre>
 <p>These 2 models make a good candidate for an ensemble: their predicitons are fairly un-correlated, but their overall accuaracy is similar. We do a simple, linear greedy optimization on AUC using caretEnsemble:</p>
-<pre class="sourceCode r"><code class="sourceCode r">greedy_ensemble &lt;-<span class="st"> </span><span class="kw">caretEnsemble</span>(
-  model_list, 
-  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,
-  <span class="dt">trControl=</span><span class="kw">trainControl</span>(
-    <span class="dt">number=</span><span class="dv">2</span>,
-    <span class="dt">summaryFunction=</span>twoClassSummary,
-    <span class="dt">classProbs=</span><span class="ot">TRUE</span>
-    ))
-<span class="kw">summary</span>(greedy_ensemble)</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">greedy_ensemble &lt;-<span class="st"> </span><span class="kw">caretEnsemble</span>(</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  model_list, </a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">  <span class="dt">trControl=</span><span class="kw">trainControl</span>(</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">    <span class="dt">number=</span><span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">    <span class="dt">summaryFunction=</span>twoClassSummary,</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">    <span class="dt">classProbs=</span><span class="ot">TRUE</span></a>
+<a class="sourceLine" id="cb11-8" data-line-number="8">    ))</a>
+<a class="sourceLine" id="cb11-9" data-line-number="9"><span class="kw">summary</span>(greedy_ensemble)</a></code></pre></div>
 <pre><code>## The following models were ensembled: glm, rpart 
 ## They were weighted: 
-## 1.4489 -0.9559 -2.0442
-## The resulting ROC is: 0.7573
+## 1.3764 -1.0734 -1.8211
+## The resulting ROC is: 0.7379
 ## The fit for each individual model on the ROC is: 
 ##  method       ROC      ROCSD
-##     glm 0.6829333 0.05890797
-##   rpart 0.7206765 0.06849524</code></pre>
-<p>The ensemble“s AUC on the training set resamples is 0.76, which is about 7% better than the best individual model. We can confirm this finding on the test set:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;caTools&quot;</span>)
-model_preds &lt;-<span class="st"> </span><span class="kw">lapply</span>(model_list, predict, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)
-model_preds &lt;-<span class="st"> </span><span class="kw">lapply</span>(model_preds, function(x) x[,<span class="st">&quot;M&quot;</span>])
-model_preds &lt;-<span class="st"> </span><span class="kw">data.frame</span>(model_preds)
-ens_preds &lt;-<span class="st"> </span><span class="kw">predict</span>(greedy_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)
-model_preds$ensemble &lt;-<span class="st"> </span>ens_preds
-caTools::<span class="kw">colAUC</span>(model_preds, testing$Class)</code></pre>
+##     glm 0.6884429 0.08365065
+##   rpart 0.7013261 0.05304238</code></pre>
+<p>The ensemble&quot;s AUC on the training set resamples is 0.76, which is about 7% better than the best individual model. We can confirm this finding on the test set:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;caTools&quot;</span>)</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">model_preds &lt;-<span class="st"> </span><span class="kw">lapply</span>(model_list, predict, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">model_preds &lt;-<span class="st"> </span><span class="kw">lapply</span>(model_preds, <span class="cf">function</span>(x) x[,<span class="st">&quot;M&quot;</span>])</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">model_preds &lt;-<span class="st"> </span><span class="kw">data.frame</span>(model_preds)</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">ens_preds &lt;-<span class="st"> </span><span class="kw">predict</span>(greedy_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)</a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">model_preds<span class="op">$</span>ensemble &lt;-<span class="st"> </span>ens_preds</a>
+<a class="sourceLine" id="cb13-7" data-line-number="7">caTools<span class="op">::</span><span class="kw">colAUC</span>(model_preds, testing<span class="op">$</span>Class)</a></code></pre></div>
 <pre><code>##               glm     rpart  ensemble
-## M vs. R 0.6496914 0.6566358 0.6967593</code></pre>
-<p>The ensemble“s AUC on the test set is about 6% higher than the best individual model.</p>
+## M vs. R 0.7137346 0.7746914 0.8140432</code></pre>
+<p>The ensemble&quot;s AUC on the test set is about 6% higher than the best individual model.</p>
 <p>We can also use varImp to extract the variable importances from each member of the ensemble, as well as the final ensemble model:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">varImp</span>(greedy_ensemble)</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">varImp</span>(greedy_ensemble)</a></code></pre></div>
 <table>
 <thead>
 <tr class="header">
-<th align="left"></th>
+<th></th>
 <th align="right">overall</th>
 <th align="right">glm</th>
 <th align="right">rpart</th>
@@ -197,364 +452,364 @@ caTools::<span class="kw">colAUC</span>(model_preds, testing$Class)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">V60</td>
+<td>V4</td>
 <td align="right">0.0000000</td>
 <td align="right">0.0000000</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V5</td>
-<td align="right">0.0195047</td>
-<td align="right">0.0612158</td>
+<td>V59</td>
+<td align="right">0.0289819</td>
+<td align="right">0.0781531</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V53</td>
-<td align="right">0.0304331</td>
-<td align="right">0.0955147</td>
+<td>V41</td>
+<td align="right">0.0770670</td>
+<td align="right">0.2078205</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V43</td>
-<td align="right">0.0462375</td>
-<td align="right">0.1451172</td>
+<td>V53</td>
+<td align="right">0.0913891</td>
+<td align="right">0.2464417</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V45</td>
-<td align="right">0.0944099</td>
-<td align="right">0.2963071</td>
+<td>V56</td>
+<td align="right">0.1204130</td>
+<td align="right">0.3247080</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V57</td>
-<td align="right">0.1006198</td>
-<td align="right">0.3157968</td>
+<td>V38</td>
+<td align="right">0.1247390</td>
+<td align="right">0.3363738</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V55</td>
-<td align="right">0.1285907</td>
-<td align="right">0.4035841</td>
+<td>V8</td>
+<td align="right">0.1311981</td>
+<td align="right">0.3537914</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V46</td>
-<td align="right">0.1399427</td>
-<td align="right">0.4392124</td>
+<td>V19</td>
+<td align="right">0.1328616</td>
+<td align="right">0.3582773</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V26</td>
-<td align="right">0.1422233</td>
-<td align="right">0.4463702</td>
+<td>V47</td>
+<td align="right">0.1394219</td>
+<td align="right">0.3759677</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V28</td>
-<td align="right">0.1470963</td>
-<td align="right">0.4616641</td>
+<td>V55</td>
+<td align="right">0.1589879</td>
+<td align="right">0.4287299</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V39</td>
-<td align="right">0.2137933</td>
-<td align="right">0.6709937</td>
+<td>V26</td>
+<td align="right">0.1765625</td>
+<td align="right">0.4761218</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V40</td>
-<td align="right">0.2209835</td>
-<td align="right">0.6935602</td>
+<td>V48</td>
+<td align="right">0.1779364</td>
+<td align="right">0.4798269</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V29</td>
-<td align="right">0.2225302</td>
-<td align="right">0.6984145</td>
+<td>V29</td>
+<td align="right">0.2160511</td>
+<td align="right">0.5826078</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V38</td>
-<td align="right">0.2370211</td>
-<td align="right">0.7438946</td>
+<td>V42</td>
+<td align="right">0.2333095</td>
+<td align="right">0.6291469</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V47</td>
-<td align="right">0.2919185</td>
-<td align="right">0.9161909</td>
+<td>V6</td>
+<td align="right">0.2343866</td>
+<td align="right">0.6320516</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V37</td>
-<td align="right">0.2960336</td>
-<td align="right">0.9291063</td>
+<td>V20</td>
+<td align="right">0.2397789</td>
+<td align="right">0.6465924</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V6</td>
-<td align="right">0.3016812</td>
-<td align="right">0.9468313</td>
+<td>V1</td>
+<td align="right">0.2593621</td>
+<td align="right">0.6994010</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V52</td>
-<td align="right">0.3122835</td>
-<td align="right">0.9801068</td>
+<td>V2</td>
+<td align="right">0.2652978</td>
+<td align="right">0.7154073</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V33</td>
-<td align="right">0.3365294</td>
-<td align="right">1.0562030</td>
+<td>V54</td>
+<td align="right">0.3097143</td>
+<td align="right">0.8351818</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V23</td>
-<td align="right">0.3470675</td>
-<td align="right">1.0892770</td>
+<td>V40</td>
+<td align="right">0.3216242</td>
+<td align="right">0.8672981</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V1</td>
-<td align="right">0.3610996</td>
-<td align="right">1.1333169</td>
+<td>V60</td>
+<td align="right">0.3563664</td>
+<td align="right">0.9609847</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V14</td>
-<td align="right">0.3788974</td>
-<td align="right">1.1891755</td>
+<td>V14</td>
+<td align="right">0.3572180</td>
+<td align="right">0.9632810</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V7</td>
-<td align="right">0.3805820</td>
-<td align="right">1.1944628</td>
+<td>V3</td>
+<td align="right">0.3595286</td>
+<td align="right">0.9695119</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V25</td>
-<td align="right">0.4560018</td>
-<td align="right">1.4311691</td>
+<td>V52</td>
+<td align="right">0.3948310</td>
+<td align="right">1.0647091</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V44</td>
-<td align="right">0.4772194</td>
-<td align="right">1.4977606</td>
+<td>V58</td>
+<td align="right">0.4186773</td>
+<td align="right">1.1290135</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V32</td>
-<td align="right">0.5022176</td>
-<td align="right">1.5762180</td>
+<td>V35</td>
+<td align="right">0.4268529</td>
+<td align="right">1.1510598</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V51</td>
-<td align="right">0.5358167</td>
-<td align="right">1.6816694</td>
+<td>V15</td>
+<td align="right">0.4676095</td>
+<td align="right">1.2609650</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V54</td>
-<td align="right">0.5535618</td>
-<td align="right">1.7373624</td>
+<td>V51</td>
+<td align="right">0.5138987</td>
+<td align="right">1.3857892</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V58</td>
-<td align="right">0.5602788</td>
-<td align="right">1.7584441</td>
+<td>V21</td>
+<td align="right">0.5196423</td>
+<td align="right">1.4012777</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V56</td>
-<td align="right">0.5829064</td>
-<td align="right">1.8294611</td>
+<td>V57</td>
+<td align="right">0.5348672</td>
+<td align="right">1.4423335</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V59</td>
-<td align="right">0.5851514</td>
-<td align="right">1.8365071</td>
+<td>V18</td>
+<td align="right">0.5821234</td>
+<td align="right">1.5697653</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V49</td>
-<td align="right">0.6398756</td>
-<td align="right">2.0082597</td>
+<td>V34</td>
+<td align="right">0.5993462</td>
+<td align="right">1.6162087</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V24</td>
-<td align="right">0.7070269</td>
-<td align="right">2.2190151</td>
+<td>V49</td>
+<td align="right">0.7437472</td>
+<td align="right">2.0056034</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V4</td>
-<td align="right">0.8515139</td>
-<td align="right">2.6724900</td>
+<td>V5</td>
+<td align="right">0.8256171</td>
+<td align="right">2.2263753</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V22</td>
-<td align="right">0.8705632</td>
-<td align="right">2.7322766</td>
+<td>V33</td>
+<td align="right">0.9981225</td>
+<td align="right">2.6915566</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V3</td>
-<td align="right">0.8954663</td>
-<td align="right">2.8104353</td>
+<td>V50</td>
+<td align="right">1.0826702</td>
+<td align="right">2.9195497</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V36</td>
-<td align="right">0.9063754</td>
-<td align="right">2.8446737</td>
+<td>V43</td>
+<td align="right">1.2909897</td>
+<td align="right">3.4813082</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V41</td>
-<td align="right">0.9114068</td>
-<td align="right">2.8604649</td>
+<td>V30</td>
+<td align="right">1.3041581</td>
+<td align="right">3.5168184</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V8</td>
-<td align="right">0.9414496</td>
-<td align="right">2.9547546</td>
+<td>V23</td>
+<td align="right">1.3214433</td>
+<td align="right">3.5634300</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V19</td>
-<td align="right">0.9592699</td>
-<td align="right">3.0106838</td>
+<td>V22</td>
+<td align="right">1.3849784</td>
+<td align="right">3.7347601</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V2</td>
-<td align="right">0.9876133</td>
-<td align="right">3.0996403</td>
+<td>V28</td>
+<td align="right">1.6013217</td>
+<td align="right">4.3181557</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V48</td>
-<td align="right">1.0037327</td>
-<td align="right">3.1502311</td>
-<td align="right">0.000000</td>
-</tr>
-<tr class="odd">
-<td align="left">V30</td>
-<td align="right">1.0763736</td>
-<td align="right">3.3782158</td>
-<td align="right">0.000000</td>
-</tr>
-<tr class="even">
-<td align="left">V21</td>
-<td align="right">1.1406271</td>
-<td align="right">3.5798764</td>
+<td>V24</td>
+<td align="right">1.8528812</td>
+<td align="right">4.9965160</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V50</td>
-<td align="right">1.1555815</td>
-<td align="right">3.6268111</td>
+<td>V25</td>
+<td align="right">2.0614003</td>
+<td align="right">5.5588126</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="even">
-<td align="left">V34</td>
-<td align="right">1.2249664</td>
-<td align="right">3.8445765</td>
+<td>V32</td>
+<td align="right">2.8817970</td>
+<td align="right">7.7711105</td>
 <td align="right">0.000000</td>
 </tr>
 <tr class="odd">
-<td align="left">V20</td>
-<td align="right">1.3424172</td>
-<td align="right">4.2131978</td>
+<td>V44</td>
+<td align="right">3.0154479</td>
+<td align="right">0.8022216</td>
+<td align="right">4.319940</td>
+</tr>
+<tr class="even">
+<td>V39</td>
+<td align="right">3.0934591</td>
+<td align="right">0.7034846</td>
+<td align="right">4.502128</td>
+</tr>
+<tr class="odd">
+<td>V37</td>
+<td align="right">3.3454581</td>
+<td align="right">0.8436842</td>
+<td align="right">4.820022</td>
+</tr>
+<tr class="even">
+<td>V17</td>
+<td align="right">3.3606302</td>
+<td align="right">0.7580712</td>
+<td align="right">4.894597</td>
+</tr>
+<tr class="odd">
+<td>V46</td>
+<td align="right">3.3678171</td>
+<td align="right">0.9310958</td>
+<td align="right">4.804038</td>
+</tr>
+<tr class="even">
+<td>V36</td>
+<td align="right">3.4872152</td>
+<td align="right">1.2259491</td>
+<td align="right">4.820022</td>
+</tr>
+<tr class="odd">
+<td>V7</td>
+<td align="right">3.5999626</td>
+<td align="right">1.9421882</td>
+<td align="right">4.577067</td>
+</tr>
+<tr class="even">
+<td>V16</td>
+<td align="right">3.6023687</td>
+<td align="right">3.0291498</td>
+<td align="right">3.940228</td>
+</tr>
+<tr class="odd">
+<td>V27</td>
+<td align="right">3.9114160</td>
+<td align="right">2.7317811</td>
+<td align="right">4.606701</td>
+</tr>
+<tr class="even">
+<td>V31</td>
+<td align="right">4.2438797</td>
+<td align="right">11.4441295</td>
 <td align="right">0.000000</td>
 </tr>
+<tr class="odd">
+<td>V45</td>
+<td align="right">4.6313000</td>
+<td align="right">0.8321081</td>
+<td align="right">6.870571</td>
+</tr>
 <tr class="even">
-<td align="left">V42</td>
-<td align="right">1.4504082</td>
-<td align="right">4.5521294</td>
-<td align="right">0.000000</td>
+<td>V13</td>
+<td align="right">6.0729518</td>
+<td align="right">2.6020604</td>
+<td align="right">8.118721</td>
 </tr>
 <tr class="odd">
-<td align="left">V35</td>
-<td align="right">1.5006324</td>
-<td align="right">4.7097589</td>
-<td align="right">0.000000</td>
+<td>V9</td>
+<td align="right">6.1685352</td>
+<td align="right">0.6752631</td>
+<td align="right">9.406310</td>
 </tr>
 <tr class="even">
-<td align="left">V31</td>
-<td align="right">1.5014484</td>
-<td align="right">4.7123197</td>
-<td align="right">0.000000</td>
+<td>V10</td>
+<td align="right">6.2532734</td>
+<td align="right">0.1409472</td>
+<td align="right">9.855923</td>
 </tr>
 <tr class="odd">
-<td align="left">V27</td>
-<td align="right">3.0365663</td>
-<td align="right">0.5780564</td>
-<td align="right">4.186200</td>
+<td>V12</td>
+<td align="right">7.1804369</td>
+<td align="right">0.3496059</td>
+<td align="right">11.206579</td>
 </tr>
 <tr class="even">
-<td align="left">V15</td>
-<td align="right">4.0576503</td>
-<td align="right">0.3819398</td>
-<td align="right">5.776464</td>
-</tr>
-<tr class="odd">
-<td align="left">V18</td>
-<td align="right">4.2110509</td>
-<td align="right">0.3369883</td>
-<td align="right">6.022617</td>
-</tr>
-<tr class="even">
-<td align="left">V17</td>
-<td align="right">4.4701477</td>
-<td align="right">0.8271323</td>
-<td align="right">6.173673</td>
-</tr>
-<tr class="odd">
-<td align="left">V16</td>
-<td align="right">5.3660529</td>
-<td align="right">0.2577508</td>
-<td align="right">7.754766</td>
-</tr>
-<tr class="even">
-<td align="left">V13</td>
-<td align="right">7.3251110</td>
-<td align="right">0.9620234</td>
-<td align="right">10.300580</td>
-</tr>
-<tr class="odd">
-<td align="left">V10</td>
-<td align="right">8.2586938</td>
-<td align="right">0.3012508</td>
-<td align="right">11.979705</td>
-</tr>
-<tr class="even">
-<td align="left">V12</td>
-<td align="right">10.8256937</td>
-<td align="right">1.3496604</td>
-<td align="right">15.256820</td>
-</tr>
-<tr class="odd">
-<td align="left">V9</td>
-<td align="right">11.5410394</td>
-<td align="right">3.2537912</td>
-<td align="right">15.416273</td>
-</tr>
-<tr class="even">
-<td align="left">V11</td>
-<td align="right">11.8386126</td>
-<td align="right">0.5166883</td>
-<td align="right">17.132903</td>
+<td>V11</td>
+<td align="right">8.3466767</td>
+<td align="right">0.0154652</td>
+<td align="right">13.257153</td>
 </tr>
 </tbody>
 </table>
@@ -562,58 +817,61 @@ caTools::<span class="kw">colAUC</span>(model_preds, testing$Class)</code></pre>
 </div>
 <div id="caretstack" class="section level2">
 <h2>caretStack</h2>
-<p>caretStack allows us to move beyond simple blends of models to using “meta-models” to ensemble collections of predictive models. DO NOT use the <code>trainControl</code> object you used to fit the training models to fit the ensemble. The re-sampling indexes will be wrong. Fortunately, you don“t need to be fastidious with re-sampling indexes for caretStack, as it only fits one model, and the defaults <code>train</code> uses will usually work fine:</p>
-<pre class="sourceCode r"><code class="sourceCode r">glm_ensemble &lt;-<span class="st"> </span><span class="kw">caretStack</span>(
-  model_list,
-  <span class="dt">method=</span><span class="st">&quot;glm&quot;</span>,
-  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,
-  <span class="dt">trControl=</span><span class="kw">trainControl</span>(
-    <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,
-    <span class="dt">number=</span><span class="dv">10</span>,
-    <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,
-    <span class="dt">classProbs=</span><span class="ot">TRUE</span>,
-    <span class="dt">summaryFunction=</span>twoClassSummary
-  )
-)
-model_preds2 &lt;-<span class="st"> </span>model_preds
-model_preds2$ensemble &lt;-<span class="st"> </span><span class="kw">predict</span>(glm_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)
-CF &lt;-<span class="st"> </span><span class="kw">coef</span>(glm_ensemble$ens_model$finalModel)[-<span class="dv">1</span>]
-<span class="kw">colAUC</span>(model_preds2, testing$Class)</code></pre>
+<p>caretStack allows us to move beyond simple blends of models to using “meta-models” to ensemble collections of predictive models. DO NOT use the <code>trainControl</code> object you used to fit the training models to fit the ensemble. The re-sampling indexes will be wrong. Fortunately, you don&quot;t need to be fastidious with re-sampling indexes for caretStack, as it only fits one model, and the defaults <code>train</code> uses will usually work fine:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">glm_ensemble &lt;-<span class="st"> </span><span class="kw">caretStack</span>(</a>
+<a class="sourceLine" id="cb16-2" data-line-number="2">  model_list,</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">  <span class="dt">method=</span><span class="st">&quot;glm&quot;</span>,</a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">  <span class="dt">trControl=</span><span class="kw">trainControl</span>(</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">    <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,</a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">    <span class="dt">number=</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb16-8" data-line-number="8">    <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,</a>
+<a class="sourceLine" id="cb16-9" data-line-number="9">    <span class="dt">classProbs=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb16-10" data-line-number="10">    <span class="dt">summaryFunction=</span>twoClassSummary</a>
+<a class="sourceLine" id="cb16-11" data-line-number="11">  )</a>
+<a class="sourceLine" id="cb16-12" data-line-number="12">)</a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">model_preds2 &lt;-<span class="st"> </span>model_preds</a>
+<a class="sourceLine" id="cb16-14" data-line-number="14">model_preds2<span class="op">$</span>ensemble &lt;-<span class="st"> </span><span class="kw">predict</span>(glm_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)</a>
+<a class="sourceLine" id="cb16-15" data-line-number="15">CF &lt;-<span class="st"> </span><span class="kw">coef</span>(glm_ensemble<span class="op">$</span>ens_model<span class="op">$</span>finalModel)[<span class="op">-</span><span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb16-16" data-line-number="16"><span class="kw">colAUC</span>(model_preds2, testing<span class="op">$</span>Class)</a></code></pre></div>
 <pre><code>##               glm     rpart  ensemble
-## M vs. R 0.6496914 0.6566358 0.6967593</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">CF/<span class="kw">sum</span>(CF)</code></pre>
+## M vs. R 0.7137346 0.7746914 0.8140432</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">CF<span class="op">/</span><span class="kw">sum</span>(CF)</a></code></pre></div>
 <pre><code>##       glm     rpart 
-## 0.3186219 0.6813781</code></pre>
+## 0.3708346 0.6291654</code></pre>
 <p>Note that <code>glm_ensemble$ens_model</code> is a regular caret object of class <code>train</code>. The glm-weighted model weights (glm vs rpart) and test-set AUCs are extremely similar to the caretEnsemble greedy optimization.</p>
 <p>We can also use more sophisticated ensembles than simple linear weights, but these models are much more succeptible to over-fitting, and generally require large sets of resamples to train on (n=50 or higher for bootstrap samples). Lets try one anyways:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;gbm&quot;</span>)
-gbm_ensemble &lt;-<span class="st"> </span><span class="kw">caretStack</span>(
-  model_list,
-  <span class="dt">method=</span><span class="st">&quot;gbm&quot;</span>,
-  <span class="dt">verbose=</span><span class="ot">FALSE</span>,
-  <span class="dt">tuneLength=</span><span class="dv">10</span>,
-  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,
-  <span class="dt">trControl=</span><span class="kw">trainControl</span>(
-    <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,
-    <span class="dt">number=</span><span class="dv">10</span>,
-    <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,
-    <span class="dt">classProbs=</span><span class="ot">TRUE</span>,
-    <span class="dt">summaryFunction=</span>twoClassSummary
-  )
-)
-model_preds3 &lt;-<span class="st"> </span>model_preds
-model_preds3$ensemble &lt;-<span class="st"> </span><span class="kw">predict</span>(gbm_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)
-<span class="kw">colAUC</span>(model_preds3, testing$Class)</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;gbm&quot;</span>)</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2">gbm_ensemble &lt;-<span class="st"> </span><span class="kw">caretStack</span>(</a>
+<a class="sourceLine" id="cb20-3" data-line-number="3">  model_list,</a>
+<a class="sourceLine" id="cb20-4" data-line-number="4">  <span class="dt">method=</span><span class="st">&quot;gbm&quot;</span>,</a>
+<a class="sourceLine" id="cb20-5" data-line-number="5">  <span class="dt">verbose=</span><span class="ot">FALSE</span>,</a>
+<a class="sourceLine" id="cb20-6" data-line-number="6">  <span class="dt">tuneLength=</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb20-7" data-line-number="7">  <span class="dt">metric=</span><span class="st">&quot;ROC&quot;</span>,</a>
+<a class="sourceLine" id="cb20-8" data-line-number="8">  <span class="dt">trControl=</span><span class="kw">trainControl</span>(</a>
+<a class="sourceLine" id="cb20-9" data-line-number="9">    <span class="dt">method=</span><span class="st">&quot;boot&quot;</span>,</a>
+<a class="sourceLine" id="cb20-10" data-line-number="10">    <span class="dt">number=</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb20-11" data-line-number="11">    <span class="dt">savePredictions=</span><span class="st">&quot;final&quot;</span>,</a>
+<a class="sourceLine" id="cb20-12" data-line-number="12">    <span class="dt">classProbs=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb20-13" data-line-number="13">    <span class="dt">summaryFunction=</span>twoClassSummary</a>
+<a class="sourceLine" id="cb20-14" data-line-number="14">  )</a>
+<a class="sourceLine" id="cb20-15" data-line-number="15">)</a>
+<a class="sourceLine" id="cb20-16" data-line-number="16">model_preds3 &lt;-<span class="st"> </span>model_preds</a>
+<a class="sourceLine" id="cb20-17" data-line-number="17">model_preds3<span class="op">$</span>ensemble &lt;-<span class="st"> </span><span class="kw">predict</span>(gbm_ensemble, <span class="dt">newdata=</span>testing, <span class="dt">type=</span><span class="st">&quot;prob&quot;</span>)</a>
+<a class="sourceLine" id="cb20-18" data-line-number="18"><span class="kw">colAUC</span>(model_preds3, testing<span class="op">$</span>Class)</a></code></pre></div>
 <pre><code>##               glm     rpart  ensemble
-## M vs. R 0.6496914 0.6566358 0.7006173</code></pre>
+## M vs. R 0.7137346 0.7746914 0.8009259</code></pre>
 <p>In this case, the sophisticated ensemble is no better than a simple weighted linear combination. Non-linear ensembles seem to work best when you have:</p>
 <ol style="list-style-type: decimal">
 <li>Lots of data.</li>
 <li>Lots of models with similar accuracies.</li>
-<li>Your models are un-correllated: each one seems to capture a different aspect of the data, and different models perform best on different subsets of the data.</li>
+<li>Your models are uncorrelated: each one seems to capture a different aspect of the data, and different models perform best on different subsets of the data.</li>
 </ol>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
@@ -621,7 +879,7 @@ model_preds3$ensemble &lt;-<span class="st"> </span><span class="kw">predict</sp
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

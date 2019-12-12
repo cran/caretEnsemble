@@ -11,8 +11,8 @@ library("pROC")
 data(Sonar)
 set.seed(107)
 inTrain <- createDataPartition(y = Sonar$Class, p = .75, list = FALSE)
-training <- Sonar[ inTrain, ]
-testing <- Sonar[-inTrain, ]
+training <- Sonar[ inTrain,]
+testing <- Sonar[-inTrain,]
 my_control <- trainControl(
   method="boot",
   number=25,
@@ -67,7 +67,7 @@ modelCor(resamples(model_list))
 
 ## ---- echo=TRUE----------------------------------------------------------
 greedy_ensemble <- caretEnsemble(
-  model_list,
+  model_list, 
   metric="ROC",
   trControl=trainControl(
     number=2,
@@ -79,7 +79,7 @@ summary(greedy_ensemble)
 ## ---- echo=TRUE----------------------------------------------------------
 library("caTools")
 model_preds <- lapply(model_list, predict, newdata=testing, type="prob")
-model_preds <- lapply(model_preds, function(x) x[, "M"])
+model_preds <- lapply(model_preds, function(x) x[,"M"])
 model_preds <- data.frame(model_preds)
 ens_preds <- predict(greedy_ensemble, newdata=testing, type="prob")
 model_preds$ensemble <- ens_preds
@@ -133,3 +133,4 @@ gbm_ensemble <- caretStack(
 model_preds3 <- model_preds
 model_preds3$ensemble <- predict(gbm_ensemble, newdata=testing, type="prob")
 colAUC(model_preds3, testing$Class)
+

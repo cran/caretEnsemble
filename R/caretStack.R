@@ -44,6 +44,7 @@ caretStack <- function(all.models, ...){
 #' @param level tolerance/confidence level
 #' @param return_weights a logical indicating whether prediction weights for each model
 #' should be returned
+#' @param na.action the method for handling missing data passed to \code{\link{predict.train}}.
 #' @param ... arguments to pass to \code{\link{predict.train}}.
 #' @export
 #' @details Prediction weights are defined as variable importance in the stacked
@@ -66,15 +67,20 @@ predict.caretStack <- function(
   object, newdata=NULL,
   se=FALSE, level=0.95,
   return_weights=FALSE,
+  na.action=na.omit,
   ...){
   stopifnot(is(object$models, "caretList"))
   type <- extractModelTypes(object$models)
-  preds <- predict(object$models, newdata=newdata)
+
+  #preds <- do.call(predict, c(list(object=object$models, newdata=newdata), modelList_predict_params)) TODO keep this around for future use
+  preds <- predict(object$models, newdata=newdata, na.action=na.action)
   if(type == "Classification"){
-    out <- predict(object$ens_model, newdata=preds, ...)
+    out <- predict(object$ens_model, newdata=preds, na.action=na.action, ...)
     # Need a check here
-    if(class(out) %in% c("data.frame", "matrix")){
-      est <- out[, 2, drop = TRUE] # return only the probabilities for the second class
+    if(inherits(out, c("data.frame", "matrix"))){
+      # Return probability predictions for only one of the classes
+      # as determined by configured default response class level
+      est <- out[, getBinaryTargetLevel(), drop = TRUE]
     } else{
       est <- out
     }
@@ -151,6 +157,7 @@ summary.caretStack <- function(object, ...){
 #' @description This is a function to print a caretStack.
 #' @param x An object of class caretStack
 #' @param ... ignored
+#' @importFrom stats na.omit
 #' @export
 #' @examples
 #' \dontrun{
@@ -165,12 +172,8 @@ summary.caretStack <- function(object, ...){
 #' print(meta_model)
 #' }
 print.caretStack <- function(x, ...){
-  n <- length(x$models)
-  cat(paste(
-    "A",
-    x$ens_model$method,
-    "ensemble of 2 base models:",
-    paste(sapply(x$models, function(x) x$method), collapse=", ")))
+  base.models <- paste(names(x$models), collapse=", ")
+  cat(sprintf("A %s ensemble of %s base models: %s", x$ens_model$method, length(x$models), base.models))
   cat("\n\nEnsemble results:\n")
   print(x$ens_model)
 }
