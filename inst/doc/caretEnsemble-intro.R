@@ -1,9 +1,9 @@
-## ---- echo=FALSE, results="hide"----------------------------------------------
+## ----echo=FALSE, results="hide"-----------------------------------------------
 suppressMessages(library("caret"))
 suppressMessages(library("mlbench"))
 suppressMessages(library("pROC"))
 
-## ---- echo=TRUE, results="hide"-----------------------------------------------
+## ----echo=TRUE, results="hide"------------------------------------------------
 #Adapted from the caret vignette
 library("caret")
 library("mlbench")
@@ -22,7 +22,7 @@ my_control <- trainControl(
   summaryFunction=twoClassSummary
   )
 
-## ---- echo=TRUE, results="hide", warning=FALSE--------------------------------
+## ----echo=TRUE, results="hide", warning=FALSE---------------------------------
 library("rpart")
 library("caretEnsemble")
 model_list <- caretList(
@@ -31,19 +31,19 @@ model_list <- caretList(
   methodList=c("glm", "rpart")
   )
 
-## ---- echo=TRUE, results="hide"-----------------------------------------------
+## ----echo=TRUE, results="hide"------------------------------------------------
 p <- as.data.frame(predict(model_list, newdata=head(testing)))
 print(p)
 
-## ---- echo=FALSE, results="asis"----------------------------------------------
+## ----echo=FALSE, results="asis"-----------------------------------------------
 knitr::kable(p)
 
-## ---- echo=FALSE, results="hide", warning=FALSE-------------------------------
+## ----echo=FALSE, results="hide", warning=FALSE--------------------------------
 suppressMessages(library("mlbench"))
 suppressMessages(library("randomForest"))
 suppressMessages(library("nnet"))
 
-## ---- echo=TRUE, results="hide", warning=FALSE--------------------------------
+## ----echo=TRUE, results="hide", warning=FALSE---------------------------------
 library("mlbench")
 library("randomForest")
 library("nnet")
@@ -59,13 +59,13 @@ model_list_big <- caretList(
   )
 )
 
-## ---- echo=TRUE, fig.show="hold"----------------------------------------------
+## ----echo=TRUE, fig.show="hold"-----------------------------------------------
 xyplot(resamples(model_list))
 
-## ---- echo=TRUE---------------------------------------------------------------
+## ----echo=TRUE----------------------------------------------------------------
 modelCor(resamples(model_list))
 
-## ---- echo=TRUE---------------------------------------------------------------
+## ----echo=TRUE----------------------------------------------------------------
 greedy_ensemble <- caretEnsemble(
   model_list,
   metric="ROC",
@@ -76,7 +76,7 @@ greedy_ensemble <- caretEnsemble(
     ))
 summary(greedy_ensemble)
 
-## ---- echo=TRUE---------------------------------------------------------------
+## ----echo=TRUE----------------------------------------------------------------
 library("caTools")
 model_preds <- lapply(model_list, predict, newdata=testing, type="prob")
 model_preds <- lapply(model_preds, function(x) x[, "M"])
@@ -85,13 +85,13 @@ ens_preds <- predict(greedy_ensemble, newdata=testing, type="prob")
 model_preds$ensemble <- ens_preds
 caTools::colAUC(model_preds, testing$Class)
 
-## ---- echo=TRUE, results="hide"-----------------------------------------------
+## ----echo=TRUE, results="hide"------------------------------------------------
 varImp(greedy_ensemble)
 
-## ---- echo=FALSE, results="asis"----------------------------------------------
+## ----echo=FALSE, results="asis"-----------------------------------------------
 knitr::kable(varImp(greedy_ensemble))
 
-## ---- echo=TRUE---------------------------------------------------------------
+## ----echo=TRUE----------------------------------------------------------------
 glm_ensemble <- caretStack(
   model_list,
   method="glm",
@@ -110,11 +110,11 @@ CF <- coef(glm_ensemble$ens_model$finalModel)[-1]
 colAUC(model_preds2, testing$Class)
 CF/sum(CF)
 
-## ---- echo=FALSE, results="hide"----------------------------------------------
+## ----echo=FALSE, results="hide"-----------------------------------------------
 suppressMessages(library("gbm"))
 suppressMessages(library("plyr"))
 
-## ---- echo=TRUE---------------------------------------------------------------
+## ----echo=TRUE----------------------------------------------------------------
 library("gbm")
 gbm_ensemble <- caretStack(
   model_list,

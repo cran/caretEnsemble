@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: caretEnsemble
 Type: Package
 Title: Ensembles of Caret Models
-Version: 2.0.2
-Date: 2023-02-08
+Version: 2.0.3
+Date: 2023-09-19
 Authors@R: c(person(c("Zachary", "A."), "Deane-Mayer", role = c("aut", "cre"),
     email = "zach.mayer@gmail.com"),
     person(c("Jared", "E."), "Knowles", role=c("aut"),
@@ -27,9 +27,9 @@ VignetteBuilder: knitr
 RoxygenNote: 7.2.3
 LazyData: true
 NeedsCompilation: no
-Packaged: 2023-02-09 02:25:16 UTC; zach2
+Packaged: 2023-09-20 12:15:27 UTC; zach2
 Author: Zachary A. Deane-Mayer [aut, cre],
   Jared E. Knowles [aut]
 Maintainer: Zachary A. Deane-Mayer <zach.mayer@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-02-09 03:30:05 UTC
+Date/Publication: 2023-09-20 13:00:02 UTC
