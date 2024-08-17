@@ -1,4 +1,1 @@
-library(testthat)
-library(caretEnsemble)
-
-test_check("caretEnsemble")
+testthat::test_check("caretEnsemble")

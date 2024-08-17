@@ -9,8 +9,9 @@
   newdata = NULL,
   se = FALSE,
   level = 0.95,
-  return_weights = FALSE,
-  na.action = na.omit,
+  excluded_class_id = 0L,
+  return_class_only = FALSE,
+  verbose = FALSE,
   ...
 )
 }
@@ -21,14 +22,27 @@
 
 \item{se}{logical, should prediction errors be produced? Default is false.}
 
-\item{level}{tolerance/confidence level}
-
-\item{return_weights}{a logical indicating whether prediction weights for each model
+\item{level}{tolerance/confidence level
 should be returned}
 
-\item{na.action}{the method for handling missing data passed to \code{\link{predict.train}}.}
+\item{excluded_class_id}{Which class to exclude from predictions. Note that if the caretStack
+was trained with an excluded_class_id, that class is ALWAYS excluded from the predictions from the
+caretList of input models. excluded_class_id for predict.caretStack is for the final ensemble model.
+So different classes could be excluded from the caretList models and the final ensemble model.}
 
-\item{...}{arguments to pass to \code{\link{predict.train}}.}
+\item{return_class_only}{a logical indicating whether to return only the class predictions as a factor.
+If TRUE, the return will be a factor rather than a data.table. This is a convenience function,
+and should not be widely used. For example if you have a downstream process that consumes
+the output of the model, you should have that process consume probabilities for each class.
+This will make it easier to change prediction probability thresholds if needed in the future.}
+
+\item{verbose}{a logical indicating whether to print progress}
+
+\item{...}{arguments to pass to \code{\link[caret]{predict.train}} for the ensemble model.
+Do not specify type here. For classification, type will always be prob, and for regression, type will always be raw.}
+}
+\value{
+a data.table of predictions
 }
 \description{
 Make predictions from a caretStack. This function passes the data to each function in
@@ -41,15 +55,11 @@ caret model. This is not available for all cases such as where the library
 model predictions are transformed before being passed to the stacking model.
 }
 \examples{
-\dontrun{
-library("rpart")
 models <- caretList(
-  x=iris[1:100,1:2],
-  y=iris[1:100,3],
-  trControl=trainControl(method="cv"),
-  methodList=c("rpart", "glm")
+  x = iris[1:100, 1:2],
+  y = iris[1:100, 3],
+  methodList = c("rpart", "glm")
 )
-meta_model <- caretStack(models, method="lm")
-RMSE(predict(meta_model, iris[101:150,1:2]), iris[101:150,3])
-}
+meta_model <- caretStack(models, method = "lm")
+RMSE(predict(meta_model, iris[101:150, 1:2]), iris[101:150, 3])
 }

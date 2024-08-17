@@ -1,258 +1,226 @@
-#' @title Generate a specification for fitting a caret model
-#' @description A caret model specification consists of 2 parts: a model (as a string) and the arguments to the train call for fitting that model
-#' @param method the modeling method to pass to caret::train
-#' @param ... Other arguments that will eventually be passed to caret::train
-#' @export
-#' @return a list of lists
-#' @examples
-#' caretModelSpec("rf", tuneLength=5, preProcess="ica")
-caretModelSpec <- function(method="rf", ...) {
-  out <- c(list(method=method), list(...))
-  return(out)
-}
-
-#' @title Check that the tuning parameters list supplied by the user is valid
-#' @description This function makes sure the tuning parameters passed by the user are valid and have the proper naming, etc.
-#' @param x a list of user-supplied tuning parameters and methods
-#' @return NULL
-tuneCheck <- function(x) {
-
-  #Check model methods
-  stopifnot(is.list(x))
-
-  methods <- lapply(x, function(m) m$method)
-  methodCheck(methods)
-  method_names <- sapply(x, extractModelName)
-
-  #Name models
-  if(is.null(names(x))) {
-    names(x) <- method_names
-  }
-  i <- names(x)==""
-  if(any(i)) {
-    names(x)[i] <- method_names[i]
-  }
-  names(x) <- make.names(names(x), unique=TRUE)
-
-  #Check params
-  stopifnot(all(sapply(x, is.list)))
-  return(x)
-}
-
-#' @title Check that the methods supplied by the user are valid caret methods
-#' @description This function uses modelLookup from caret to ensure the list of methods supplied by the user are all models caret can fit.
-#' @param x a list of user-supplied tuning parameters and methods
-#' @importFrom caret modelLookup
-#' @return NULL
-methodCheck <- function(x) {
-
-  # Fetch list of existing caret models
-  supported_models <- unique(modelLookup()$model)
-
-  # Split given model methods based on whether or not they
-  # are specified as strings or model info lists (ie custom models)
-  models <- lapply(x, function(m) {
-    if (is.list(m)) {
-      validateCustomModel(m)
-      data.frame(type="custom", model=m$method)
-    } else if (is.character(m)) {
-      data.frame(type="native", model=m)
-    } else {
-      stop(paste0(
-        "Method \"", m, "\" is invalid.  Methods must either be character names ",
-        "supported by caret (e.g. \"gbm\") or modelInfo lists ",
-        "(e.g. getModelInfo(\"gbm\", regex=F))"))
-    }
-  })
-  models <- do.call(rbind, models)  # Could use data.table to be more efficient with lots of models
-
-  # Ensure that all non-custom models are valid
-  native_models <- subset(models, get("type") == "native")$model
-  bad_models <- setdiff(native_models, supported_models)
-
-  if(length(bad_models)>0) {
-    msg <- paste(bad_models, collapse=", ")
-    stop(paste("The following models are not valid caret models:", msg))
-  }
-
-  return(invisible(NULL))
-}
-
-#' @title Check that the trainControl object supplied by the user is valid and has defined re-sampling indexes.
-#' @description This function checks the user-supplied trainControl object and makes sure it has all the required fields.  If the resampling indexes are missing, it adds them to the model.  If savePredictions=FALSE or "none", this function sets it to "final".
-#' @param x a trainControl object.
-#' @param y the target for the model.  Used to determine resampling indexes.
-#' @importFrom caret createResample createFolds createMultiFolds createDataPartition
-#' @return NULL
-trControlCheck <- function(x, y) {
-
-  if(!length(x$savePredictions) == 1) {
-    stop("Please pass exactly 1 argument to savePredictions, e.g. savePredictions='final'")
-  }
-
-  if(x$savePredictions == TRUE) {
-    warning("x$savePredictions == TRUE is depreciated. Setting to 'final' instead.")
-    x$savePredictions <- "final"
-  }
-
-  if(!(x$savePredictions %in% c("all", "final"))) {
-    warning("trControl$savePredictions not 'all' or 'final'.  Setting to 'final' so we can ensemble the models.")
-    x$savePredictions <- "final"
-  }
-
-  if(is.null(x$index)) {
-    warning("indexes not defined in trControl.  Attempting to set them ourselves, so each model in the ensemble will have the same resampling indexes.")
-    if(x$method=="none") {
-      stop("Models that aren't resampled cannot be ensembled.  All good ensemble methods rely on out-of sample data.  If you really need to ensemble without re-sampling, try the median or mean of the model's predictions.")
-
-    } else if(x$method=="boot" | x$method=="adaptive_boot") {
-      x$index <- createResample(y, times = x$number, list = TRUE)
-    } else if(x$method=="cv" | x$method=="adaptive_cv") {
-      x$index  <- createFolds(y, k = x$number, list = TRUE, returnTrain = TRUE)
-    } else if(x$method=="repeatedcv") {
-      x$index <- createMultiFolds(y, k = x$number, times = x$repeats)
-    } else if(x$method=="LGOCV" | x$method=="adaptive_LGOCV") {
-      x$index <- createDataPartition(
-        y,
-        times = x$number,
-        p = 0.5,
-        list = TRUE,
-        groups = min(5, length(y)))
-    } else {
-      stop(paste0("caretList does not currently know how to handle cross-validation method='", x$method, "'. Please specify trControl$index manually"))
-    }
-  }
-  return(x)
-}
-
-#' @title Extracts the target variable from a set of arguments headed to the caret::train function.
-#' @description This function extracts the y variable from a set of arguments headed to a caret::train model.  Since there are 2 methods to call caret::train, this function also has 2 methods.
-#' @param ... a set of arguments, as in the caret::train function
-extractCaretTarget <- function(...) {
-  UseMethod("extractCaretTarget")
-}
-
-#' @title Extracts the target variable from a set of arguments headed to the caret::train.default function.
-#' @description This function extracts the y variable from a set of arguments headed to a caret::train.default model.
-#' @param x an object where samples are in rows and features are in columns. This could be a simple matrix, data frame or other type (e.g. sparse matrix). See Details below.
-#' @param y a numeric or factor vector containing the outcome for each sample.
-#' @param ... ignored
-#' @method extractCaretTarget default
-extractCaretTarget.default <- function(x, y, ...) {
-  return(y)
-}
-
-#' @title Extracts the target variable from a set of arguments headed to the caret::train.formula function.
-#' @description This function extracts the y variable from a set of arguments headed to a caret::train.formula model.
-#' @param form A formula of the form y ~ x1 + x2 + ...
-#' @param data Data frame from which variables specified in formula are preferentially to be taken.
-#' @param ... ignored
-#' @method extractCaretTarget formula
-extractCaretTarget.formula <- function(form, data, ...) {
-  y <- model.response(model.frame(form, data))
-  names(y) <- NULL
-  return(y)
-}
-
-#' Create a list of several train models from the caret package
-#"
-#' Build a list of train objects suitable for ensembling using the \code{\link{caretEnsemble}}
+table #' Create a list of several train models from the caret package
+#'
+#' Build a list of train objects suitable for ensembling using the \code{\link{caretStack}}
 #' function.
-#"
-#' @param ... arguments to pass to \code{\link{train}}.  These arguments will determine which train method gets dispatched.
-#' @param trControl a \code{\link{trainControl}} object.  We are going to intercept this object check that it has the "index" slot defined, and define the indexes if they are not.
-#' @param methodList optional, a character vector of caret models to ensemble.  One of methodList or tuneList must be specified.
-#' @param tuneList optional, a NAMED list of caretModelSpec objects. This much more flexible than methodList and allows the specification of model-specific parameters (e.g. passing trace=FALSE to nnet)
-#' @param continue_on_fail, logical, should a valid caretList be returned that excludes models that fail, default is FALSE
-#' @return A list of \code{\link{train}} objects. If the model fails to build,
+#'
+#' @param ... arguments to pass to \code{\link[caret]{train}}. Don't use the formula interface, its slower
+#' and buggier compared to the X, y interface. Use a \code{\link[data.table]{data.table}} for X.
+#' Particularly if you have a large dataset and/or many models, using a data.table will
+#' avoid unnecessary copies of your data and can save a lot of time and RAM.
+#' These arguments will determine which train method gets dispatched.
+#' @param trControl a \code{\link[caret]{trainControl}} object. If NULL, will use defaultControl.
+#' @param methodList optional, a character vector of caret models to ensemble.
+#' One of methodList or tuneList must be specified.
+#' @param tuneList optional, a NAMED list of caretModelSpec objects.
+#' This much more flexible than methodList and allows the
+#' specification of model-specific parameters (e.g. passing trace=FALSE to nnet)
+#' @param metric a string, the metric to optimize for. If NULL, we will choose a good one.
+#' @param continue_on_fail logical, should a valid caretList be returned that
+#' excludes models that fail, default is FALSE
+#' @param trim logical should the train models be trimmed to save memory and speed up stacking
+#' @return A list of \code{\link[caret]{train}} objects. If the model fails to build,
 #' it is dropped from the list.
-#' @importFrom caret trainControl train
 #' @export
 #' @examples
-#' \dontrun{
-#' myControl <- trainControl(method="cv", number=5)
 #' caretList(
 #'   Sepal.Length ~ Sepal.Width,
 #'   head(iris, 50),
-#'   methodList=c("glm", "lm"),
-#'   trControl=myControl
+#'   methodList = c("glm", "lm"),
+#'   tuneList = list(
+#'     nnet = caretModelSpec(method = "nnet", trace = FALSE, tuneLength = 1)
 #'   )
-#' caretList(
-#'   Sepal.Length ~ Sepal.Width,
-#'   head(iris, 50), methodList=c("lm"),
-#'   tuneList=list(
-#'     nnet=caretModelSpec(method="nnet", trace=FALSE, tuneLength=1)
-#'  ),
-#'   trControl=myControl
-#'   )
-#'   }
+#' )
 caretList <- function(
-  ...,
-  trControl = NULL,
-  methodList = NULL,
-  tuneList = NULL,
-  continue_on_fail = FALSE) {
-
-  #Checks
-  if(is.null(trControl)) {
-    trControl <- trainControl()
+    ...,
+    trControl = NULL,
+    methodList = NULL,
+    tuneList = NULL,
+    metric = NULL,
+    continue_on_fail = FALSE,
+    trim = TRUE) {
+  # Checks
+  if (is.null(tuneList) && is.null(methodList)) {
+    stop("Please either define a methodList or tuneList", call. = FALSE)
   }
-  if(is.null(tuneList) & is.null(methodList)) {
-    stop("Please either define a methodList or tuneList")
-  }
-  if(!is.null(methodList) & any(duplicated(methodList))) {
-    warning("Duplicate entries in methodList.  Using unqiue methodList values.")
+  if (!is.null(methodList) && anyDuplicated(methodList) > 0L) {
+    warning("Duplicate entries in methodList. Using unique methodList values.", call. = FALSE)
     methodList <- unique(methodList)
   }
 
-  #Make methodList into a tuneList and add onto tuneList
-  if(!is.null(methodList)) {
+  # Make methodList into a tuneList and add onto tuneList
+  if (!is.null(methodList)) {
     tuneList <- c(tuneList, lapply(methodList, caretModelSpec))
   }
 
-  #Make sure tuneList is valid
+  # Make sure tuneList is valid
   tuneList <- tuneCheck(tuneList)
 
-  #Capture global arguments for train as a list
-  global_args <- list(...)
+  # Determine class vs reg
+  target <- extractCaretTarget(...)
+  is_class <- is.factor(target) || is.character(target)
+  is_binary <- length(unique(target)) == 2L
 
-  #Add indexes to trControl if they are missing
-  if(is.null(trControl$index)) {
-    target <- extractCaretTarget(...)
-    trControl <- trControlCheck(x=trControl, y=target)
+  # Determine metric and trControl
+  if (is.null(metric)) {
+    metric <- defaultMetric(is_class = is_class, is_binary = is_binary)
+  }
+  if (is.null(trControl)) {
+    trControl <- defaultControl(target, is_class = is_class, is_binary = is_binary)
   }
 
-  #Squish trControl back onto the global arguments list
-  global_args[["trControl"]] <- trControl
+  # ALWAYS save class probs
+  trControl[["classProbs"]] <- is_class
+  trControl["savePredictions"] <- "final"
 
-  #Loop through the tuneLists and fit caret models with those specs
-  modelList <- lapply(tuneList, function(m) {
-    model_args <- c(global_args, m)
-    if(continue_on_fail == TRUE) {
-      model <- tryCatch(do.call(train, model_args), error=function(e) NULL)
-    } else {
-      model <- do.call(train, model_args)
-    }
-    return(model)
-  })
+  # Capture global arguments for train as a list
+  # Squish trControl back onto the global arguments list
+  global_args <- list(...)
+  global_args[["trControl"]] <- trControl
+  global_args[["metric"]] <- metric
+
+  # Loop through the tuneLists and fit caret models with those specs
+  modelList <- lapply(tuneList, caretTrain, global_args = global_args, continue_on_fail = continue_on_fail, trim = trim)
   names(modelList) <- names(tuneList)
-  nulls <- sapply(modelList, is.null)
+  nulls <- vapply(modelList, is.null, logical(1L))
   modelList <- modelList[!nulls]
 
-  if(length(modelList)==0) {
-    stop("caret:train failed for all models.  Please inspect your data.")
+  if (length(modelList) == 0L) {
+    stop("caret:train failed for all models. Please inspect your data.", call. = FALSE)
   }
-  class(modelList) <- c("caretList")
+  class(modelList) <- c("caretList", "list")
 
-  return(modelList)
+  modelList
 }
 
-#' @title Check if an object is a caretList object
-#' @description Check if an object is a caretList object
-#' @param object an R object
+#' @title Create a matrix of predictions for each of the models in a caretList
+#' @description Make a matrix of predictions from a list of caret models
+#'
+#' @param object an object of class caretList
+#' @param newdata New data for predictions. It can be NULL, but this is ill-advised.
+#' @param verbose Logical. If FALSE no progress bar is printed if TRUE a progress
+#' bar is shown. Default FALSE.
+#' @param excluded_class_id Integer. The class id to drop when predicting for multiclass
+#' @param ... Other arguments to pass to \code{\link[caret]{predict.train}}
+#' @method predict caretList
 #' @export
-is.caretList <- function(object) {
-  is(object, "caretList")
+predict.caretList <- function(object, newdata = NULL, verbose = FALSE, excluded_class_id = 1L, ...) {
+  stopifnot(methods::is(object, "caretList"))
+
+  # Decided whether to be verbose or quiet
+  apply_fun <- lapply
+  if (verbose) {
+    apply_fun <- pbapply::pblapply
+  }
+
+  # Loop over the models and make predictions
+  if (!is.null(newdata)) {
+    newdata <- data.table::as.data.table(newdata)
+  }
+  preds <- apply_fun(object, caretPredict, newdata = newdata, excluded_class_id = excluded_class_id, ...)
+  stopifnot(
+    is.list(preds),
+    length(preds) >= 1L,
+    length(preds) == length(object),
+    vapply(preds, data.table::is.data.table, logical(1L))
+  )
+
+  # All preds must have the same number of rows.
+  # We allow different columns, and even different column names!
+  # E.g. you could mix classification and regression models
+  # caretPredict will aggregate multiple predictions for the same row (e.g. repeated CV)
+  # caretPredict will make sure the rows are sorted by the original row order
+  # If you want to ensemble models that were trained on different rows of data, use
+  # newdata to predict on a common dataset so they can be ensembles.
+  pred_rows <- vapply(preds, nrow, integer(1L))
+  stopifnot(pred_rows == pred_rows[1L])
+
+  # Name the predictions
+  for (i in seq_along(preds)) {
+    p <- preds[[i]]
+    model_name <- names(object)[i]
+    if (ncol(p) == 1L) {
+      # For a single column, name it after the model (e.g. regression or binary with an excluded class)
+      new_names <- model_name
+    } else {
+      # For multiple columns, name them including the model (e.g. multiclass)
+      new_names <- paste(model_name, names(p), sep = "_")
+    }
+    data.table::setnames(p, names(p), new_names)
+  }
+  preds <- unname(preds)
+
+  # Combine the predictions into a single data.table
+  preds <- data.table::as.data.table(preds)
+
+  stopifnot(
+    !is.null(names(preds)),
+    length(dim(preds)) == 2L
+  )
+  all_regression <- all(vapply(object, function(x) x$modelType == "Regression", logical(1L)))
+  if (all_regression) {
+    stopifnot(
+      length(names(preds)) == length(object),
+      names(preds) == names(object)
+    )
+  }
+
+  # Return
+  preds
+}
+
+#' @title Construct a default train control for use with caretList
+#' @description Unlike caret::trainControl, this function defaults to 5 fold CV.
+#' CV is good for stacking, as every observation is in the test set exactly once.
+#' We use 5 instead of 10 to save compute time, as caretList is for fitting many
+#' models. We also construct explicit fold indexes and return the stacked predictions,
+#' which are needed for stacking. For classification models we return class probabilities.
+#' @param target the target variable.
+#' @param method the method to use for trainControl.
+#' @param number the number of folds to use.
+#' @param savePredictions the type of predictions to save.
+#' @param index the fold indexes to use.
+#' @param is_class logical, is this a classification or regression problem.
+#' @param is_binary logical, is this binary classification.
+#' @param ... other arguments to pass to \code{\link[caret]{trainControl}}
+#' @export
+defaultControl <- function(
+    target,
+    method = "cv",
+    number = 5L,
+    savePredictions = "final",
+    index = caret::createFolds(target, k = number, list = TRUE, returnTrain = TRUE),
+    is_class = is.factor(target) || is.character(target),
+    is_binary = length(unique(target)) == 2L,
+    ...) {
+  stopifnot(savePredictions %in% c("final", "all"))
+  caret::trainControl(
+    method = method,
+    number = number,
+    index = index,
+    savePredictions = savePredictions,
+    classProbs = is_class,
+    summaryFunction = ifelse(is_class && is_binary, caret::twoClassSummary, caret::defaultSummary),
+    returnData = FALSE,
+    ...
+  )
+}
+
+#' @title Construct a default metric
+#' @description Caret defaults to RMSE for classification and RMSE for regression.
+#' For classification, I would rather use ROC.
+#' @param is_class logical, is this a classification or regression problem.
+#' @param is_binary logical, is this binary classification.
+#' @export
+defaultMetric <- function(is_class, is_binary) {
+  if (is_class) {
+    if (is_binary) {
+      "ROC"
+    } else {
+      "Accuracy"
+    }
+  } else {
+    "RMSE"
+  }
 }
 
 #' @title Convert object to caretList object
@@ -261,9 +229,10 @@ is.caretList <- function(object) {
 #' @return a \code{\link{caretList}} object
 #' @export
 as.caretList <- function(object) {
-  if (is.null(object))
-    stop("object is null")
-  UseMethod("as.caretList")
+  if (is.null(object)) {
+    stop("object is null", call. = FALSE)
+  }
+  UseMethod("as.caretList", object)
 }
 
 #' @title Convert object to caretList object - For Future Use
@@ -272,7 +241,7 @@ as.caretList <- function(object) {
 #' @return NA
 #' @export
 as.caretList.default <- function(object) {
-  # nothing yet, future dreams go here
+  stop("object must be a list", call. = FALSE)
 }
 
 #' @title Convert list to caretList
@@ -280,19 +249,79 @@ as.caretList.default <- function(object) {
 #' @param object list of caret models
 #' @return a \code{\link{caretList}} object
 #' @export
-#' @method as.caretList list
 as.caretList.list <- function(object) {
-  if(! inherits(object, "list")) {
-    stop("object must be a list of caret models")
+  # Check that the object is a list
+  if (!inherits(object, "list")) {
+    stop("object must be a list of caret models", call. = FALSE)
   }
+
   # Check that each element in the list is of class train
-  if(!all(sapply(object, is, "train"))) {
-    stop("object requires all elements of list to be caret models")
+  if (!all(vapply(object, methods::is, logical(1L), "train"))) {
+    stop("object requires all elements of list to be caret models", call. = FALSE)
   }
 
-  class(object) <- c("caretList")
+  # Make sure the class is named
+  if (is.null(names(object))) {
+    # If the model list used for predictions is not currently named,
+    # then exctract the model names from each model individually.
+    names(object) <- vapply(object, extractModelName, character(1L))
+  }
 
-  return(object)
+  # Make sure the names are valid
+  names(object) <- make.names(names(object), unique = TRUE, allow_ = TRUE)
+
+  # Apply the class
+  class(object) <- "caretList"
+
+  # Return
+  object
+}
+
+#' @title S3 definition for concatenating caretList
+#'
+#' @description take N objects of class caretList and concatenate them into a larger object of
+#' class caretList for future ensembling
+#'
+#' @param ... the objects of class caretList or train to bind into a caretList
+#' @return a \code{\link{caretList}} object
+#' @export
+#' @examples
+#' data(iris)
+#' model_list1 <- caretList(Sepal.Width ~ .,
+#'   data = iris,
+#'   tuneList = list(
+#'     lm = caretModelSpec(method = "lm")
+#'   )
+#' )
+#'
+#' model_list2 <- caretList(Sepal.Width ~ .,
+#'   data = iris, tuneLength = 1L,
+#'   tuneList = list(
+#'     rf = caretModelSpec(method = "rf")
+#'   )
+#' )
+#'
+#' bigList <- c(model_list1, model_list2)
+c.caretList <- function(...) {
+  new_model_list <- unlist(lapply(list(...), function(x) {
+    if (inherits(x, "caretList")) {
+      x
+    } else if (inherits(x, "train")) {
+      x <- list(x)
+      names(x) <- x[[1L]]$method
+      x
+    } else {
+      stop("class of modelList1 must be 'caretList' or 'train'", call. = FALSE)
+    }
+  }), recursive = FALSE)
+
+  # Make sure names are unique
+  names(new_model_list) <- make.names(names(new_model_list), unique = TRUE)
+
+  # reset the class to caretList
+  class(new_model_list) <- "caretList"
+
+  new_model_list
 }
 
 #' @title Index a caretList
@@ -302,73 +331,208 @@ as.caretList.list <- function(object) {
 #' @export
 `[.caretList` <- function(object, index) {
   newObj <- `[.listof`(object, index)
-  return(newObj)
+  newObj
 }
 
-#' @title Create a matrix of predictions for each of the models in a caretList
-#' @description Make a matrix of predictions from a list of caret models
-#"
-#' @param object an object of class caretList
-#' @param verbose Logical. If FALSE no progress bar is printed if TRUE a progress
-#' bar is shown. Default FALSE.
-#' @param newdata New data for predictions.  It can be NULL, but this is ill-advised.
-#' @param ... additional arguments to pass to predict.train. Pass the \code{newdata}
-#' argument here, DO NOT PASS the "type" argument.  Classification models will
-#' return probabilities if possible, and regression models will return "raw".
-#' @importFrom pbapply pbsapply
-#' @importFrom pbapply pboptions
+#' @title Generate a specification for fitting a caret model
+#' @description A caret model specification consists of 2 parts: a model (as a string) and
+#' the arguments to the train call for fitting that model
+#' @param method the modeling method to pass to caret::train
+#' @param ... Other arguments that will eventually be passed to caret::train
 #' @export
-#' @method predict caretList
-predict.caretList <- function(object, newdata = NULL, ..., verbose = FALSE) {
+#' @return a list of lists
+#' @examples
+#' caretModelSpec("rf", tuneLength = 5, preProcess = "ica")
+caretModelSpec <- function(method = "rf", ...) {
+  out <- list(method = method, ...)
+  out
+}
 
-  if(is.null(newdata)) {
-    warning("Predicting without new data is not well supported.  Attempting to predict on the training data.")
-    newdata <- object[[1]]$trainingData
-    if(is.null(newdata)) {
-      stop("Could not find training data in the first model in the ensemble.")
-    }
-  }
+#' @title Check that the tuning parameters list supplied by the user is valid
+#' @description This function makes sure the tuning parameters passed by the user
+#' are valid and have the proper naming, etc.
+#' @param x a list of user-supplied tuning parameters and methods
+#' @return NULL
+#' @export
+tuneCheck <- function(x) {
+  # Check model methods
+  stopifnot(is.list(x))
 
-  if(verbose == TRUE) {
-    pboptions(type = "txt", char = "*")
-  } else if(verbose == FALSE) {
-    pboptions(type = "none")
+  model_methods <- lapply(x, function(m) m$method)
+  methodCheck(model_methods)
+  method_names <- vapply(x, extractModelName, character(1L))
+
+  # Name models
+  if (is.null(names(x))) {
+    names(x) <- method_names
   }
-  preds <- pbsapply(object, function(x) {
-    type <- x$modelType
-    if (type=="Classification") {
-      if(x$control$classProbs) {
-        # Return probability predictions for only one of the classes
-        # as determined by configured default response class level
-        caret::predict.train(x, type="prob", newdata=newdata, ...)[, getBinaryTargetLevel()]
-      } else {
-        caret::predict.train(x, type="raw", newdata=newdata, ...)
-      }
-    } else if(type=="Regression") {
-      caret::predict.train(x, type="raw", newdata=newdata, ...)
+  i <- !nzchar(names(x))
+  if (any(i)) {
+    names(x)[i] <- method_names[i]
+  }
+  names(x) <- make.names(names(x), unique = TRUE)
+
+  # Check params
+  stopifnot(vapply(x, is.list, logical(1L)))
+  x
+}
+
+#' @title Validate a custom caret model info list
+#' @description Currently, this only ensures that all model info lists
+#' were also assigned a "method" attribute for consistency with usage
+#' of non-custom models
+#' @param x a model info list (e.g. \code{getModelInfo("rf", regex=F)\[[1]]})
+#' @return validated model info list (i.e. x)
+#' @keywords internal
+checkCustomModel <- function(x) {
+  if (is.null(x$method)) {
+    stop(
+      "Custom models must be defined with a \"method\" attribute containing the name",
+      "by which that model should be referenced. Example: my.glm.model$method <- \"custom_glm\"",
+      call. = FALSE
+    )
+  }
+  x
+}
+
+#' @title Check that the methods supplied by the user are valid caret methods
+#' @description This function uses modelLookup from caret to ensure the list of
+#' methods supplied by the user are all models caret can fit.
+#' @param x a list of user-supplied tuning parameters and methods
+#' @return NULL
+#' @keywords internal
+methodCheck <- function(x) {
+  # Fetch list of existing caret models
+  supported_models <- unique(caret::modelLookup()$model)
+
+  # Split given model methods based on whether or not they
+  # are specified as strings or model info lists (ie custom models)
+  models <- lapply(x, function(m) {
+    if (is.list(m)) {
+      checkCustomModel(m)
+      data.table::data.table(type = "custom", model = m$method, stringsAsFactors = FALSE)
+    } else if (is.character(m)) {
+      data.table::data.table(type = "native", model = m, stringsAsFactors = FALSE)
     } else {
-      stop(paste("Unknown model type:", type))
+      stop(
+        "Method \"", m, "\" is invalid. Methods must either be character names ",
+        "supported by caret (e.g. \"gbm\") or modelInfo lists ",
+        "(e.g. getModelInfo(\"gbm\", regex=F))",
+        call. = FALSE
+      )
     }
   })
-  if(! inherits(preds, "matrix") & ! inherits(preds, "data.frame")) {
-    if(inherits(preds, "character") | inherits(preds, "factor")) {
-      preds <- as.character(preds) # drop factorization
-    }
-    preds <- as.matrix(t(preds))
+  models <- data.table::rbindlist(models, use.names = TRUE, fill = TRUE)
+
+  # Ensure that all non-custom models are valid
+  native_models <- subset(models, get("type") == "native")$model
+  bad_models <- setdiff(native_models, supported_models)
+
+  if (length(bad_models) > 0L) {
+    msg <- toString(bad_models)
+    stop("The following models are not valid caret models: ", msg, call. = FALSE)
   }
 
-  if (is.null(names(object))) {
-    # If the model list used for predictions is not currently named,
-    # then exctract the model names from each model individually.
-    # Note that this should only be possible when caretList objects
-    # are created manually
-    predcols <- sapply(object, extractModelName)
-    colnames(preds) <- make.names(predcols, unique=TRUE)
-  } else {
-    # Otherwise, assign the names of the prediction columns to be
-    # equal to the names in the given model list
-    colnames(preds) <- names(object)
-  }
+  invisible(NULL)
+}
 
-  return(preds)
+#' @title Extracts the target variable from a set of arguments headed to the caret::train function.
+#' @description This function extracts the y variable from a set of arguments headed to a caret::train model.
+#' Since there are 2 methods to call caret::train, this function also has 2 methods.
+#' @param ... a set of arguments, as in the caret::train function
+#' @keywords internal
+extractCaretTarget <- function(...) {
+  UseMethod("extractCaretTarget")
+}
+
+#' @title Extracts the target variable from a set of arguments headed to the caret::train.default function.
+#' @description This function extracts the y variable from a set of arguments headed to a caret::train.default model.
+#' @param x an object where samples are in rows and features are in columns. This could be a simple matrix, data frame
+#' or other type (e.g. sparse matrix). See Details below.
+#' @param y a numeric or factor vector containing the outcome for each sample.
+#' @param ... ignored
+#' @keywords internal
+extractCaretTarget.default <- function(x, y, ...) {
+  y
+}
+
+#' @title Extracts the target variable from a set of arguments headed to the caret::train.formula function.
+#' @description This function extracts the y variable from a set of arguments headed to a caret::train.formula model.
+#' @param form A formula of the form y ~ x1 + x2 + ...
+#' @param data Data frame from which variables specified in formula are preferentially to be taken.
+#' @param ... ignored
+#' @method extractCaretTarget formula
+#' @keywords internal
+extractCaretTarget.formula <- function(form, data, ...) {
+  y <- stats::model.response(stats::model.frame(form, data))
+  names(y) <- NULL
+  y
+}
+
+#' @title Extract accuracy metrics from a \code{\link[caretEnsemble]{caretList}} object
+#' @description Extract the cross-validated accuracy metrics from each model in a caretList.
+#' @param x a caretList object
+#' @param ... passed to extractMetric.train
+#' @return A data.table with metrics from each model.
+#' @method extractMetric caretList
+#' @export
+extractMetric.caretList <- function(x, ...) {
+  metrics <- lapply(x, extractMetric.train, ...)
+  metrics <- data.table::rbindlist(metrics, use.names = TRUE, fill = TRUE)
+  metrics
+}
+
+#' @title Plot a caretList object
+#' @description This function plots the performance of each model in a caretList object.
+#' @param x a caretList object
+#' @param metric which metric to plot
+#' @param ... ignored
+#' @return A ggplot2 object
+#' @method plot caretList
+#' @export
+plot.caretList <- function(x, metric = NULL, ...) {
+  dat <- extractMetric(x, metric = metric)
+  plt <- ggplot2::ggplot(
+    dat, ggplot2::aes(
+      x = .data[["model_name"]],
+      y = .data[["value"]],
+      ymin = .data[["value"]] - .data[["sd"]],
+      ymax = .data[["value"]] + .data[["sd"]],
+      color = .data[["metric"]]
+    )
+  ) +
+    ggplot2::geom_pointrange() +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Model", y = "Metric Value")
+
+  plt
+}
+
+#' @title Summarize a caretList
+#' @description This function summarizes the performance of each model in a caretList object.
+#' @param object a caretList object
+#' @param metric The metric to show. If NULL will use the metric used to train each model
+#' @param ... passed to extractMetric
+#' @return A data.table with metrics from each model.
+#' @method summary caretList
+#' @export
+summary.caretList <- function(object, metric = NULL, ...) {
+  out <- list(
+    models = toString(names(object)),
+    results = extractMetric(object, metric = metric)
+  )
+  class(out) <- "summary.caretList"
+  out
+}
+
+#' @title Print a summary.caretList object
+#' @description This is a function to print a summary.caretList
+#' @param x An object of class summary.caretList
+#' @param ... ignored
+#' @method print summary.caretList
+#' @export
+print.summary.caretList <- function(x, ...) {
+  cat("The following models were ensembled:", x$models, " \n")
+  cat("\nModel accuracy:\n")
+  print(x$results)
 }

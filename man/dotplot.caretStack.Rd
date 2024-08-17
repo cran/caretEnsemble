@@ -4,29 +4,25 @@
 \alias{dotplot.caretStack}
 \title{Comparison dotplot for a caretStack object}
 \usage{
-\method{dotplot}{caretStack}(x, data = NULL, ...)
+\method{dotplot}{caretStack}(x, ...)
 }
 \arguments{
 \item{x}{An object of class caretStack}
 
-\item{data}{passed to dotplot}
-
 \item{...}{passed to dotplot}
 }
 \description{
-This is a function to make a dotplot from a caretStack.  It uses dotplot from the caret package on all the models in the ensemble, excluding the final ensemble model.  At the moment, this function only works if the ensembling model has the same number of resamples as the component models.
+This is a function to make a dotplot from a caretStack. It uses dotplot from the
+caret package on all the models in the ensemble, excluding the final ensemble model.At the moment,
+this function only works if the ensembling model has the same number of resamples as the component models.
 }
 \examples{
-\dontrun{
 set.seed(42)
-library("rpart")
 models <- caretList(
-  x=iris[1:100,1:2],
-  y=iris[1:100,3],
-  trControl=trainControl(method="cv"),
-  methodList=c("rpart", "glm")
+  x = iris[1:100, 1:2],
+  y = iris[1:100, 3],
+  methodList = c("rpart", "glm")
 )
-meta_model <- caretStack(models, method="lm", trControl=trainControl(method="cv"))
-dotplot.caretStack(meta_model)
-}
+meta_model <- caretStack(models, method = "lm")
+lattice::dotplot(meta_model)
 }
