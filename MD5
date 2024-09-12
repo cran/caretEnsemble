@@ -1,11 +1,11 @@
-2c9f70ff35097abc9b18e36bc293247a *DESCRIPTION
+64f6a5861366b286231a6c09789cdc21 *DESCRIPTION
 28b11fd662d84c69a7a784d1593c74d5 *LICENSE
 6fde3970d4e0783b797990dc14db649c *NAMESPACE
-a2257806da7c8c049dbd94caac76084d *NEWS.md
+552c290aa819057e647f628476afceec *NEWS.md
 9b06d6ff005b69e092375d4a317ca6eb *R/caretEnsemble.R
 35c206f10b4731a5760487d2e70a3738 *R/caretList.R
 309d68dc470438f5e665479ae9dccce5 *R/caretPredict.R
-33338e0d7a57c7f89cb62de09e75791c *R/caretStack.R
+b5870875f87ae8aea1473065e10ae719 *R/caretStack.R
 baadc2fdb798cb33dec519f4c49911e4 *R/greedyOpt.R
 43326dc7deb4fb84a1dd7c5c892cbbe7 *R/package.R
 e6bd2be538f3e0ce502f821cc8c3e151 *R/permutationImportance.R
@@ -22,10 +22,10 @@ d7e27f0567a31357f96307ef639834e1 *data/models.class.rda
 0e735b5836b5b0cc0d380c9cdaf1f97d *inst/data-raw/test-all_models.R
 622b79880854d25aa750cfd2208f01be *inst/doc/Version-4.0-New-Features.R
 873b10ebdd98aad34afa72dd318519df *inst/doc/Version-4.0-New-Features.Rmd
-514b126e0e41ed83ea536b6bcc8006d5 *inst/doc/Version-4.0-New-Features.html
+c4380e0fbc60763c56ab52e6d03d7687 *inst/doc/Version-4.0-New-Features.html
 afeedf525019442a3c00062d87652e35 *inst/doc/caretEnsemble-intro.R
 cfc2e4b02a2d31915d83e369d247266b *inst/doc/caretEnsemble-intro.Rmd
-1764fbea9352fe5051ce86e3d6e0a3dd *inst/doc/caretEnsemble-intro.html
+830847da1fd2354c31b4949dfd3ebad3 *inst/doc/caretEnsemble-intro.html
 cfd09fc6dab5558d12cce34ca3b42f5e *man/X.class.Rd
 9f00c5b75f0ffd986e42598b0595a34f *man/X.reg.Rd
 c455740b29ee3d8c4628a484bb13e0c9 *man/Y.class.Rd
@@ -34,7 +34,7 @@ cd13cae4d429c23abd667d44d7372c62 *man/aggregate_mean_or_first.Rd
 f602e6ddc71d4c830139bb093c2f1669 *man/as.caretList.Rd
 f4505f92cf40ccb9e741f5974347ece8 *man/as.caretList.default.Rd
 f5b4b68c3d85f22460f4e79c90859502 *man/as.caretList.list.Rd
-2c2b91b300ee2a834cf4afa88e131681 *man/autoplot.caretStack.Rd
+dec7fe50c0bf4a1616efbfbb1eca3555 *man/autoplot.caretStack.Rd
 c13df25aba196a41c2810ae19483589c *man/c.caretList.Rd
 06176891d320365ce24df30155ede0e8 *man/c.train.Rd
 ad620c32cf5d3c5eb96d14df76b11de6 *man/caretEnsemble.Rd

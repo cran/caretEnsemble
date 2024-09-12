@@ -1,7 +1,7 @@
 Package: caretEnsemble
 Type: Package
 Title: Ensembles of Caret Models
-Version: 4.0.0
+Version: 4.0.1
 Date: 2024-08-17
 Authors@R: c(person(c("Zachary", "A."), "Deane-Mayer", role = c("aut", "cre", "cph"), email = "zach.mayer@gmail.com"),
     person(c("Jared", "E.", "Knowles"), role="ctb", email="jknowles@gmail.com"),
@@ -16,9 +16,9 @@ Description: Functions for creating ensembles of caret models: caretList()
     non-linear combinations of these models, using a caret::train() model as a
     meta-model.
 Depends: R (>= 4.1.0)
-Suggests: MASS, caTools, covr, devtools, earth, gbm, glmnet, klaR,
-        knitr, lintr, mgcv, mlbench, nnet, pkgdown, randomForest,
-        rmarkdown, rhub, rpart, spelling, testthat, usethis
+Suggests: MASS, caTools, covr, earth, gbm, glmnet, klaR, knitr, lintr,
+        mgcv, mlbench, nnet, randomForest, rmarkdown, rhub, rpart,
+        spelling, testthat, usethis
 Imports: caret, data.table, ggplot2, lattice, methods, patchwork,
         pbapply, rlang
 License: MIT + file LICENSE
@@ -28,10 +28,10 @@ LazyData: true
 Language: en-US
 Encoding: UTF-8
 NeedsCompilation: no
-Packaged: 2024-08-17 17:19:18 UTC; zach
+Packaged: 2024-09-12 20:07:27 UTC; zach
 Author: Zachary A. Deane-Mayer [aut, cre, cph],
   Jared E. Knowles [ctb],
   Antón López [ctb]
 Maintainer: Zachary A. Deane-Mayer <zach.mayer@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-08-17 17:40:02 UTC
+Date/Publication: 2024-09-12 21:50:09 UTC
