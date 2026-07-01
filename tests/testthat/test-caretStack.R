@@ -197,6 +197,69 @@ testthat::test_that("caretStack handles new data correctly", {
   testthat::expect_identical(ncol(pred_reg), 1L)
 })
 
+testthat::test_that("caretStack handles original features correctly", {
+  model_stack_1 <- caretStack(
+    models.class,
+    method = "glmnet",
+    new_X = X.class,
+    new_y = Y.class,
+    original_features = colnames(X.class)
+  )
+
+  # Check that the internal variable is correctly set
+  testthat::expect_identical(model_stack_1$original_features, colnames(X.class))
+
+  # Check we can predict
+  pred_1 <- predict(model_stack_1, newdata = X.class)
+  testthat::expect_s3_class(pred_1, "data.table")
+  testthat::expect_identical(nrow(pred_1), nrow(X.class))
+  expect_all_finite(pred_1)
+
+  # Do not specify original features
+  model_stack_2 <- caretStack(
+    models.class,
+    method = "glmnet",
+    new_X = X.class,
+    new_y = Y.class,
+    original_features = NULL
+  )
+
+  # Check that all columns are used
+  testthat::expect_null(model_stack_2$original_features, NULL)
+})
+
+testthat::test_that("caretStack handles a subset of original features given its names", {
+  model_stack <- caretStack(
+    models.class,
+    method = "glmnet",
+    new_X = X.class,
+    new_y = Y.class,
+    original_features = c("Sepal.Width", "Petal.Length")
+  )
+
+  # Check that the internal variable is correctly set
+  testthat::expect_identical(model_stack$original_features, c("Sepal.Width", "Petal.Length"))
+
+  # Check we can predict
+  pred <- predict(model_stack, newdata = X.class)
+  testthat::expect_s3_class(pred, "data.table")
+  testthat::expect_identical(nrow(pred), nrow(X.class))
+  expect_all_finite(pred)
+})
+
+testthat::test_that("We can get variable importance when we use original features", {
+  model_stack <- caretStack(
+    models.class,
+    method = "glmnet",
+    new_X = X.class,
+    new_y = Y.class,
+    original_features = c("Sepal.Width", "Petal.Length")
+  )
+  imp <- caret::varImp(model_stack, normalize = TRUE, newdata = X.class)
+
+  testthat::expect_named(imp, c("rf", "glm", "rpart", "treebag", "Sepal.Width", "Petal.Length"))
+})
+
 testthat::test_that("caretStack coerces lists to caretLists", {
   models <- list(
     models.class[[1L]],
@@ -219,6 +282,86 @@ testthat::test_that("caretStack errors if new_y is provided but not new_X", {
   testthat::expect_error(
     caretStack(models.class, new_y = Y.class),
     "Both new_X and new_y must be NULL, or neither."
+  )
+})
+
+testthat::test_that("caretStack errors if original features is provided, but new_X or newdata is NULL", {
+  testthat::expect_error(
+    caretStack(models.class, original_features = colnames(X.class)),
+    "original_features was specified, but new_X is not provided. Please provide new_X to use original features."
+  )
+
+  # Train a model with all original_features
+  stack_model <- caretStack(
+    models.class,
+    new_X = X.class, new_y = Y.class,
+    original_features = colnames(X.class)
+  )
+  # Predict without newdata
+  testthat::expect_error(
+    predict(stack_model),
+    "original_features was specified, but newdata is not provided. Please provide newdata to use original features."
+  )
+  # Calculate variable importance without newdata
+  testthat::expect_error(
+    caret::varImp(stack_model),
+    "original_features was specified, but newdata is not provided. Please provide newdata to use original features."
+  )
+})
+
+testthat::test_that("caretStack errors when original_features contains non-existent columns", {
+  # Train a model with a bad argument value for original_features
+  testthat::expect_error(
+    caretStack(
+      models.class,
+      new_X = X.class, new_y = Y.class,
+      original_features = c("Sepal.Width", "Petal.Length", "NonExistentColumn1", "NonExistentColumn2")
+    ),
+    paste0(
+      "Not all variables in original_features are present in new_X. Missing columns: ",
+      "NonExistentColumn1, NonExistentColumn2."
+    )
+  )
+
+  # Train a model with all original_features
+  stack_model <- caretStack(
+    models.class,
+    new_X = X.class, new_y = Y.class,
+    original_features = colnames(X.class)
+  )
+  newdata <- X.class
+  colnames(newdata) <- c(
+    "(Intercept)", "NonExistentColumn1", "NonExistentColumn2", "Petal.Width", "Speciesversicolor", "Speciesvirginica"
+  )
+  # Predict with bad colnames for newdata
+  testthat::expect_error(
+    predict(stack_model, newdata = newdata),
+    paste0(
+      "Not all variables in original_features are present in newdata. Missing columns: ",
+      "Sepal.Width, Petal.Length."
+    )
+  )
+  # Calculate variable importance with bad colnames for newdata
+  testthat::expect_error(
+    caret::varImp(stack_model, newdata = newdata),
+    paste0(
+      "Not all variables in original_features are present in newdata. Missing columns: ",
+      "Sepal.Width, Petal.Length."
+    )
+  )
+})
+
+testthat::test_that("caretStack errors when original features is not a character vector or NULL", {
+  testthat::expect_error(
+    caretStack(
+      models.class,
+      new_X = X.class, new_y = Y.class,
+      original_features = list("Sepal.Width", "Petal.Length")
+    ),
+    paste0(
+      "original_features must be a character vector with the names of the features to include,",
+      " or NULL to not include any features."
+    )
   )
 })
 
@@ -322,4 +465,47 @@ testthat::test_that("set_excluded_class_id warning if unset", {
   )
 
   testthat::expect_identical(new_ensemble$excluded_class_id, 1L)
+})
+
+######################################################################
+testthat::context("Aggregate resamples")
+######################################################################
+
+testthat::test_that("caretList handles aggregate_resamples correctly", {
+  set.seed(42L)
+
+  xvars <- colnames(iris)[2L:5L]
+  yvar <- colnames(iris)[1L]
+
+  repeats <- 5L
+
+  models_agg <- caretList(
+    x = iris[, xvars],
+    y = iris[, yvar],
+    methodList = c("glm", "lm"),
+    trControl = caret::trainControl(method = "repeatedcv", number = 5L, repeats = repeats),
+    aggregate_resamples = TRUE
+  )
+
+  models_no_agg <- caretList(
+    x = iris[, xvars],
+    y = iris[, yvar],
+    methodList = c("glm", "lm"),
+    trControl = caret::trainControl(method = "repeatedcv", number = 5L, repeats = repeats),
+    aggregate_resamples = FALSE
+  )
+
+  # Test stacked predictionswith aggregate_resamples = TRUE
+  pred_agg <- predict(models_agg, aggregate_resamples = TRUE)
+  pred_no_agg <- predict(models_no_agg, aggregate_resamples = FALSE)
+
+  # Aggregated stacked predictions should have the same number of rows as the input data:
+  testthat::expect_identical(nrow(pred_agg), nrow(iris))
+
+  # Non-aggregated stacked predictions should input rows X repeats rows
+  testthat::expect_identical(nrow(pred_no_agg), nrow(iris) * repeats)
+
+  # Both stacks should have one column per model
+  testthat::expect_identical(ncol(pred_agg), 2L)
+  testthat::expect_identical(ncol(pred_no_agg), 2L)
 })

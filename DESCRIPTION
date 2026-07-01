@@ -1,13 +1,12 @@
 Package: caretEnsemble
 Type: Package
 Title: Ensembles of Caret Models
-Version: 4.0.1
-Date: 2024-08-17
+Version: 4.0.2
 Authors@R: c(person(c("Zachary", "A."), "Deane-Mayer", role = c("aut", "cre", "cph"), email = "zach.mayer@gmail.com"),
     person(c("Jared", "E.", "Knowles"), role="ctb", email="jknowles@gmail.com"),
     person("Antón", "López", role="ctb", email="anton.gomez.lopez@rai.usc.es")
     )
-URL: http://zachmayer.github.io/caretEnsemble/,
+URL: https://zachmayer.github.io/caretEnsemble/,
         https://github.com/zachmayer/caretEnsemble
 BugReports: https://github.com/zachmayer/caretEnsemble/issues
 Description: Functions for creating ensembles of caret models: caretList()
@@ -18,20 +17,21 @@ Description: Functions for creating ensembles of caret models: caretList()
 Depends: R (>= 4.1.0)
 Suggests: MASS, caTools, covr, earth, gbm, glmnet, klaR, knitr, lintr,
         mgcv, mlbench, nnet, randomForest, rmarkdown, rhub, rpart,
-        spelling, testthat, usethis
+        spelling, testthat, usethis, devtools, roxygen2, xml2,
+        htmltools, DT, pkgdown, rcmdcheck, cyclocomp
 Imports: caret, data.table, ggplot2, lattice, methods, patchwork,
         pbapply, rlang
 License: MIT + file LICENSE
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
 LazyData: true
 Language: en-US
 Encoding: UTF-8
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2024-09-12 20:07:27 UTC; zach
+Packaged: 2026-07-01 21:15:07 UTC; zach
 Author: Zachary A. Deane-Mayer [aut, cre, cph],
   Jared E. Knowles [ctb],
   Antón López [ctb]
 Maintainer: Zachary A. Deane-Mayer <zach.mayer@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-09-12 21:50:09 UTC
+Date/Publication: 2026-07-01 22:00:02 UTC
